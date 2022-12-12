@@ -2,6 +2,7 @@ package main.java.ar.edu.itba.ss.models;
 
 import main.java.ar.edu.itba.ss.utils.Constants;
 import main.java.ar.edu.itba.ss.utils.Integration;
+import main.java.ar.edu.itba.ss.utils.MathUtils;
 
 import java.util.HashSet;
 import java.util.Objects;
@@ -58,12 +59,16 @@ public class Particle {
         prev[R.ACC] = new DoublePair(0.0, acc);
     }
 
+    public double distanceTo(Particle other) {
+        return MathUtils.minDistanceBetweenSegments(curr[R.POS], length, rotation,
+                other.curr[R.POS], other.length, other.rotation);
+    }
     public boolean isColliding(Particle other) {
         if (this.equals(other))
             return false;
 
-        double realDistance = curr[R.POS].distanceTo(other.getCurrent(R.POS));
-        return Double.compare(realDistance, radius + other.getRadius()) <= 0;
+        double distance = this.distanceTo(other);
+        return distance <= radius + other.radius;
     }
 
     public DoublePair calculateForces() {
@@ -73,6 +78,7 @@ public class Particle {
         if (Double.isNaN(predV.getSecond()) ) {
             System.out.println("NAN");
         }
+
         for (Particle neighbour : neighbours) {
             DoublePair normalVerser = getCollisionVerser(neighbour);
             double overlap = getOverlap(neighbour);
@@ -98,7 +104,8 @@ public class Particle {
     }
 
     public double getOverlap(Particle other) {
-        return Math.abs(radius + other.getRadius() - other.getNext(R.POS).distanceTo(next[R.POS]));
+        double distance = this.distanceTo(other);
+        return Math.abs(radius + other.getRadius() - distance);
     }
 
     public void addNeighbour(Particle neighbour) {
@@ -110,9 +117,20 @@ public class Particle {
     }
 
     public DoublePair getCollisionVerser(Particle other) {
+//        DoublePair[] closestPoints = MathUtils.closestPointsBetweenSegments(next[R.POS], length, rotation,
+//                other.next[R.POS], other.length, other.rotation);
+//
+//        DoublePair first = closestPoints[0];
+//        DoublePair second = closestPoints[1];
+//        double dx = second.getFirst() - first.getFirst();
+//        double dy = second.getSecond() - first.getSecond();
+        // FIXME: La colision no es de centro a centro, pero si descomento lo de arriba tira NANs
+
         double dx = other.getNext(R.POS).getFirst() - next[R.POS].getFirst();
         double dy = other.getNext(R.POS).getSecond() - next[R.POS].getSecond();
+
         double dR = Math.sqrt(dx * dx + dy * dy);
+
         return new DoublePair(dx / dR, dy / dR);
     }
 

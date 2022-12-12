@@ -229,7 +229,7 @@ public class Space {
     }
 
     private Particle getWallParticle(DoublePair position, double radius) {
-        Particle wall = new Particle(radius, radius, position, 0);
+        Particle wall = new Particle(radius, 0, position, 0);
         wall.setNextR(R.POS, position);
         wall.setNextR(R.VEL, new DoublePair(0, 0));
         wall.setPredV(new DoublePair(0, 0));
