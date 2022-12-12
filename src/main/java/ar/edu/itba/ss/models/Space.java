@@ -20,9 +20,6 @@ public class Space {
     private final int gridM;
     private final int gridN;
 
-    public static double yPos = 0;
-    public static double ySpeed = 0;
-
     public Space(List<Particle> particles) {
         this.particleList = particles;
 
@@ -153,7 +150,7 @@ public class Space {
         int count = 0;
 
         for (Particle p : particleList) {
-            if (p.getCurrent(R.POS).getSecond() <= yPos - Constants.RE_ENTRANCE_THRESHOLD) {
+            if (p.getCurrent(R.POS).getSecond() <= -Constants.RE_ENTRANCE_THRESHOLD) {
                 DoublePair newPos = ParticleGenerator.generateParticlePosition(particleList, p.getId(),
                         p.getRadius(), true);
 
@@ -172,21 +169,21 @@ public class Space {
 
         // BOTTOM
         if (row == 0) {
-            double dy = Math.abs(y - yPos);
+            double dy = Math.abs(y);
 
             if (Double.compare(r, dy) >= 0) {
                 if (((x <= Constants.WIDTH / 2 - Space.SLIT_SIZE / 2) ||
                         (x >= Constants.WIDTH / 2 + Space.SLIT_SIZE / 2))) {
                     // Choque vertical con la pared
-                    DoublePair position = new DoublePair(x, yPos - r);
+                    DoublePair position = new DoublePair(x, -r);
                     particle.addNeighbour(getWallParticle(position, r));
-                } else if ((x - r <= Constants.WIDTH / 2 - Space.SLIT_SIZE / 2)) {
+                } else if ((x - r <= (Constants.WIDTH - Space.SLIT_SIZE) / 2)) {
                     // Borde izquierdo slit
-                    DoublePair position = new DoublePair(Constants.WIDTH / 2 - Space.SLIT_SIZE / 2, yPos);
+                    DoublePair position = new DoublePair((Constants.WIDTH - Space.SLIT_SIZE) / 2, 0);
                     particle.addNeighbour(getWallParticle(position, 0));
-                } else if (x + r >= Constants.WIDTH / 2 + Space.SLIT_SIZE / 2) {
+                } else if (x + r >= (Constants.WIDTH + Space.SLIT_SIZE) / 2) {
                     // Borde derecho slit
-                    DoublePair position = new DoublePair(Constants.WIDTH / 2 + Space.SLIT_SIZE / 2, yPos);
+                    DoublePair position = new DoublePair((Constants.WIDTH + Space.SLIT_SIZE) / 2, 0);
                     particle.addNeighbour(getWallParticle(position, 0));
                 }
             }
@@ -194,17 +191,17 @@ public class Space {
 
         // TOP
         if (row == gridM - 1) {
-            double topY = y + particle.getRadius();
-            if (Double.compare(topY, yPos + Constants.LENGTH) >= 0) {
-                DoublePair position = new DoublePair(x, yPos + Constants.LENGTH + r);
+            double topY = y + r;
+            if (Double.compare(topY, Constants.LENGTH) >= 0) {
+                DoublePair position = new DoublePair(x, Constants.LENGTH + r);
                 particle.addNeighbour(getWallParticle(position, r));
             }
         }
 
-        // LEFT
-        if (Double.compare(y, yPos) >= 0) {
+        if (y >= 0) {
+            // LEFT
             if (col == 0) {
-                if (Double.compare(x, particle.getRadius()) <= 0) {
+                if (Double.compare(x, r) <= 0) {
                     DoublePair position = new DoublePair(-r, y);
                     particle.addNeighbour(getWallParticle(position, r));
                 }
@@ -212,7 +209,7 @@ public class Space {
 
             // RIGHT
             if (col == gridN - 1) {
-                if (Double.compare(x + particle.getRadius(), Constants.WIDTH) >= 0) {
+                if (Double.compare(x + r, Constants.WIDTH) >= 0) {
                     DoublePair position = new DoublePair(Constants.WIDTH + r, y);
                     particle.addNeighbour(getWallParticle(position, r));
                 }
@@ -223,12 +220,13 @@ public class Space {
     private Particle getWallParticle(DoublePair position, double radius) {
         Particle wall = new Particle(radius, position);
         wall.setNextR(R.POS, position);
-        wall.setNextR(R.VEL, new DoublePair(0, Space.ySpeed));
+        wall.setNextR(R.VEL, new DoublePair(0, 0));
+        wall.setPredV(new DoublePair(0, 0));
         return wall;
     }
 
     private int getRow(DoublePair position) {
-        int toRet = (int) ((position.getSecond() - yPos) / rowSize);
+        int toRet = (int) ((position.getSecond()) / rowSize);
         if (toRet < 0)
             toRet = 0;
         else if (toRet > gridM - 1)

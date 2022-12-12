@@ -10,7 +10,6 @@ import java.util.Set;
 public class Particle {
     private static int SEQ = 0;
     private final int id;
-
     private final double radius;
     private final double mass;
 
@@ -40,16 +39,17 @@ public class Particle {
 
     public void initRs() {
         curr[R.VEL] = new DoublePair(0.0, 0.0);
-        curr[R.ACC] = new DoublePair(0.0, -Constants.GRAVITY);
+        double acc = Constants.DESIRED_VELOCITY / Constants.PROP_FACTOR;
+        curr[R.ACC] = new DoublePair(0.0, acc);
 
         prev[R.POS] = new DoublePair(Integration.eulerR(curr[R.POS].getFirst(), 0.0, -Constants.STEP, mass, 0),
                 Integration.eulerR(curr[R.POS].getSecond(), 0.0, -Constants.STEP, mass,
-                        -Constants.GRAVITY * mass));
+                        mass * acc ));
 
         prev[R.VEL] = new DoublePair(Integration.eulerV(0.0, -Constants.STEP, mass, 0),
-                Integration.eulerV(0.0, -Constants.STEP, mass, -Constants.GRAVITY * mass));
+                Integration.eulerV(0.0, -Constants.STEP, mass, acc * mass));
 
-        prev[R.ACC] = new DoublePair(0.0, -Constants.GRAVITY);
+        prev[R.ACC] = new DoublePair(0.0, acc);
     }
 
     public boolean isColliding(Particle other) {
@@ -62,7 +62,11 @@ public class Particle {
 
     public DoublePair calculateForces() {
         double fx = 0;
-        double fy = -mass * Constants.GRAVITY;
+        double fy = mass * (Constants.DESIRED_VELOCITY - predV.getSecond()) / Constants.PROP_FACTOR;
+
+        if (Double.isNaN(predV.getSecond()) ) {
+            System.out.println("NAN");
+        }
         for (Particle neighbour : neighbours) {
             DoublePair normalVerser = getCollisionVerser(neighbour);
             double overlap = getOverlap(neighbour);

@@ -17,9 +17,13 @@ public class Main {
     public static void main(String[] args) {
         long startTime = System.currentTimeMillis();
 
+        if (args.length != 2) {
+            System.out.println("Usage: java -jar SS-TPFINAL.jar <generate> <slit_size>");
+            System.exit(1);
+        }
+
         boolean generate = Boolean.parseBoolean(args[0]);
         Space.SLIT_SIZE = Double.parseDouble(args[1]);
-        double angularW = Double.parseDouble(args[2]);
 
         List<Particle> particles;
         if (generate) {
@@ -33,7 +37,6 @@ public class Main {
         int iter = 0;
 
         try (FileWriter outFile = new FileWriter("./outFiles/out.txt");
-             FileWriter yPosFile = new FileWriter("./outFiles/yPos.txt");
              FileWriter flowFile = new FileWriter("./outFiles/flow.txt")) {
             particles.forEach(Particle::initRs);
 
@@ -48,10 +51,9 @@ public class Main {
 
             while (Double.compare(elapsed, Constants.SIMULATION_TIME) < 0) {
                 particles = space.getParticleList();
-                Space.yPos = Constants.A * Math.sin(angularW * elapsed);
-                Space.ySpeed = Constants.A * angularW * Math.cos(angularW * (elapsed));
 
                 space.getNextRs();
+
 
                 if (iter % 20 == 0) {
                     outFile.write(Constants.PARTICLE_AMOUNT + "\n");
@@ -60,9 +62,8 @@ public class Main {
                         outFile.write(String.format(Locale.ROOT, "%d %f %f %f\n", p.getId(),
                                 p.getCurrent(R.POS).getFirst(),
                                 p.getCurrent(R.POS).getSecond(), p.getRadius()));
-
-                    yPosFile.write(String.format(Locale.ROOT, "%f\n", Space.yPos));
                 }
+
 
                 int flow = space.reenterParticles();
                 flowFile.write(String.format(Locale.ROOT, "%f %d\n", elapsed, flow));
