@@ -2,6 +2,7 @@ package main.java.ar.edu.itba.ss.models;
 
 import main.java.ar.edu.itba.ss.utils.Constants;
 import main.java.ar.edu.itba.ss.utils.Integration;
+import main.java.ar.edu.itba.ss.utils.MathUtils;
 import main.java.ar.edu.itba.ss.utils.ParticleGenerator;
 
 import java.util.List;
@@ -152,7 +153,7 @@ public class Space {
         for (Particle p : particleList) {
             if (p.getCurrent(R.POS).getSecond() <= -Constants.RE_ENTRANCE_THRESHOLD) {
                 DoublePair newPos = ParticleGenerator.generateParticlePosition(particleList, p.getId(),
-                        p.getRadius(), true);
+                        p.getRadius(), p.getLength(), p.getRotation(), true);
 
                 p.setCurr(R.POS, newPos);
                 count++;
@@ -166,10 +167,13 @@ public class Space {
         double x = particle.getNext(R.POS).getFirst();
         double y = particle.getNext(R.POS).getSecond();
         double r = particle.getRadius();
+        double l = particle.getLength();
+        double rotation = particle.getRotation();
 
         // BOTTOM
         if (row == 0) {
-            double dy = Math.abs(y);
+            double dy = MathUtils.minDistanceBetweenSegments(particle.getNext(R.POS), l, rotation,
+                    new DoublePair(0, 0), new DoublePair(Constants.WIDTH, 0));
 
             if (Double.compare(r, dy) >= 0) {
                 if (((x <= Constants.WIDTH / 2 - Space.SLIT_SIZE / 2) ||
@@ -191,8 +195,10 @@ public class Space {
 
         // TOP
         if (row == gridM - 1) {
-            double topY = y + r;
-            if (Double.compare(topY, Constants.LENGTH) >= 0) {
+            double dY = MathUtils.minDistanceBetweenSegments(particle.getNext(R.POS), l, rotation,
+                    new DoublePair(0, Constants.LENGTH), new DoublePair(Constants.WIDTH, Constants.LENGTH));
+
+            if (Double.compare(r, dY) >= 0) {
                 DoublePair position = new DoublePair(x, Constants.LENGTH + r);
                 particle.addNeighbour(getWallParticle(position, r));
             }
@@ -201,7 +207,9 @@ public class Space {
         if (y >= 0) {
             // LEFT
             if (col == 0) {
-                if (Double.compare(x, r) <= 0) {
+                double dX = MathUtils.minDistanceBetweenSegments(particle.getNext(R.POS), l, rotation,
+                        new DoublePair(0, 0), new DoublePair(0, Constants.LENGTH));
+                if (Double.compare(r, dX) >= 0) {
                     DoublePair position = new DoublePair(-r, y);
                     particle.addNeighbour(getWallParticle(position, r));
                 }
@@ -209,7 +217,10 @@ public class Space {
 
             // RIGHT
             if (col == gridN - 1) {
-                if (Double.compare(x + r, Constants.WIDTH) >= 0) {
+                double dX = MathUtils.minDistanceBetweenSegments(particle.getNext(R.POS), l, rotation,
+                        new DoublePair(Constants.WIDTH, 0), new DoublePair(Constants.WIDTH, Constants.LENGTH));
+
+                if (Double.compare(r, dX) >= 0) {
                     DoublePair position = new DoublePair(Constants.WIDTH + r, y);
                     particle.addNeighbour(getWallParticle(position, r));
                 }
@@ -218,7 +229,7 @@ public class Space {
     }
 
     private Particle getWallParticle(DoublePair position, double radius) {
-        Particle wall = new Particle(radius, position);
+        Particle wall = new Particle(radius, radius, position, 0);
         wall.setNextR(R.POS, position);
         wall.setNextR(R.VEL, new DoublePair(0, 0));
         wall.setPredV(new DoublePair(0, 0));

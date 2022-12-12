@@ -5,8 +5,10 @@ public class Constants {
     public static final double LENGTH = 70;
     public static final double RE_ENTRANCE_MIN_Y = 40;
     public static final double RE_ENTRANCE_THRESHOLD = LENGTH / 10;
-    public static final double MIN_RADIUS = 0.85;
-    public static final double MAX_RADIUS = 1.15;
+    public static final double MIN_RADIUS = 0.5;
+    public static final double MAX_RADIUS = 0.7;
+    public static final double MIN_LENGTH = 0.8;
+    public static final double MAX_LENGTH = 1.1;
     public static final double MASS = 1;
     public static final int PARTICLE_AMOUNT = 200;
     public static final double SIMULATION_TIME = 100;

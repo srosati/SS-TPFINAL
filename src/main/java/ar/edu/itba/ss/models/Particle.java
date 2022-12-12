@@ -11,6 +11,8 @@ public class Particle {
     private static int SEQ = 0;
     private final int id;
     private final double radius;
+    private final double length;
+    private double rotation;
     private final double mass;
 
     private final Set<Particle> neighbours = new HashSet<>();
@@ -20,19 +22,23 @@ public class Particle {
     private final DoublePair[] next = new DoublePair[3];
     private DoublePair predV;
 
-    public Particle(double radius, DoublePair position) {
+    public Particle(double radius, double length, DoublePair position, double rotation) {
         this.id = SEQ++;
         this.mass = Constants.MASS;
         this.radius = radius;
+        this.length = length;
+        this.rotation = rotation;
         this.setCurr(R.POS, position);
         predV = new DoublePair(0.0, 0.0);
     }
 
-    public Particle(int id, double radius, DoublePair position) {
+    public Particle(int id, double radius, double length, DoublePair position, double rotation) {
         this.id = id;
         SEQ++;
         this.mass = Constants.MASS;
         this.radius = radius;
+        this.length = length;
+        this.rotation = rotation;
         this.setCurr(R.POS, position);
         predV = new DoublePair(0.0, 0.0);
     }
@@ -169,6 +175,18 @@ public class Particle {
     @Override
     public int hashCode() {
         return Objects.hash(getId());
+    }
+
+    public double getLength() {
+        return length;
+    }
+
+    public double getRotation() {
+        return rotation;
+    }
+
+    public void setRotation(double rotation) {
+        this.rotation = rotation;
     }
 }
 
