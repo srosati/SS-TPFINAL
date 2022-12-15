@@ -69,9 +69,9 @@ public class Main {
                         double y1 = 0;
                         double z1 = 0;
 
-                        double w2 = Math.cos(p.getRotation() / 2);
+                        double w2 = Math.cos(p.getCurrent(R.POS).getThird() / 2);
                         double x2 = 0;
-                        double y2 = Math.sin(p.getRotation() / 2);
+                        double y2 = -Math.sin(p.getCurrent(R.POS).getThird() / 2);
                         double z2 = 0;
 
                         // Multiply quaternions

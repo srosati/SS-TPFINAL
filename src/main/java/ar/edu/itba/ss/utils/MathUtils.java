@@ -1,24 +1,28 @@
 package main.java.ar.edu.itba.ss.utils;
 
 import main.java.ar.edu.itba.ss.models.DoublePair;
+import main.java.ar.edu.itba.ss.models.DoubleTriad;
 
 public class MathUtils {
-    public static double minDistanceBetweenSegments(DoublePair center1, double length1, double rotation1, DoublePair center2, double length2, double rotation2) {
-        DoublePair[] points1 = getPoints(center1, length1, rotation1);
-        DoublePair[] points2 = getPoints(center2, length2, rotation2);
+    public static double minDistanceBetweenSegments(DoubleTriad pos1, double length1, DoubleTriad pos2, double length2) {
+        DoublePair[] points1 = getPoints(pos1, length1);
+        if (length2 == 0.0) // PARED
+            return minDistanceBetweenSegments(points1[0], points1[1], pos2);
+
+        DoublePair[] points2 = getPoints(pos2, length2);
         return minDistanceBetweenSegments(points1[0], points1[1], points2[0], points2[1]);
     }
 
-    public static double minDistanceBetweenSegments(DoublePair center, double length, double rotation, DoublePair p1, DoublePair p2) {
-        DoublePair[] points = getPoints(center, length, rotation);
+    public static double minDistanceBetweenSegments(DoubleTriad pos, double length, DoublePair p1, DoublePair p2) {
+        DoublePair[] points = getPoints(pos, length);
         return minDistanceBetweenSegments(points[0], points[1], p1, p2);
     }
 
-    private static DoublePair[] getPoints(DoublePair center, double length, double rotation) {
-        double dX = length * Math.cos(rotation) / 2;
-        double dY = length * Math.sin(rotation) / 2;
-        DoublePair p1 = new DoublePair(center.getFirst() + dX, center.getSecond() + dY);
-        DoublePair p2 = new DoublePair(center.getFirst() - dX, center.getSecond() - dY);
+    private static DoublePair[] getPoints(DoubleTriad position, double length) {
+        double dX = length * Math.cos(position.getThird()) / 2;
+        double dY = length * Math.sin(position.getThird()) / 2;
+        DoublePair p1 = new DoublePair(position.getFirst() + dX, position.getSecond() + dY);
+        DoublePair p2 = new DoublePair(position.getFirst() - dX, position.getSecond() - dY);
         return new DoublePair[]{p1, p2};
     }
 
@@ -48,9 +52,14 @@ public class MathUtils {
         return p3.distanceTo(closestPoint);
     }
 
-    public static DoublePair[] closestPointsBetweenSegments(DoublePair center1, double length1, double rotation1, DoublePair center2, double length2, double rotation2) {
-        DoublePair[] points1 = getPoints(center1, length1, rotation1);
-        DoublePair[] points2 = getPoints(center2, length2, rotation2);
+    public static DoublePair[] closestPointsBetweenSegments(DoubleTriad pos1, double length1, DoubleTriad pos2, double length2) {
+        DoublePair[] points1 = getPoints(pos1, length1);
+        if (length2 == 0.0) { // PARED
+            DoublePair closestPoint = closestPointOnSegment(points1[0], points1[1], pos2);
+            return new DoublePair[]{closestPoint, pos2};
+        }
+
+        DoublePair[] points2 = getPoints(pos2, length2);
         return closestPointsBetweenSegments(points1[0], points1[1], points2[0], points2[1]);
     }
 
@@ -98,20 +107,16 @@ public class MathUtils {
     private static DoublePair closestPointOnSegment(DoublePair p1, DoublePair p2, DoublePair p3) {
         double xDelta = p2.getFirst() - p1.getFirst();
         double yDelta = p2.getSecond() - p1.getSecond();
+        double d2 = xDelta * xDelta + yDelta * yDelta;
 
-        double u = ((p3.getFirst() - p1.getFirst()) * xDelta +
-                    (p3.getSecond() - p1.getSecond()) * yDelta) /
-                    (xDelta * xDelta + yDelta * yDelta);
+        double u = ((p3.getFirst() - p1.getFirst()) * xDelta + (p3.getSecond() - p1.getSecond()) * yDelta) / d2;
 
-        final DoublePair closestPoint;
-        if (u < 0) {
-            closestPoint = p1;
-        } else if (u > 1) {
-            closestPoint = p2;
-        } else {
-            closestPoint = new DoublePair(p1.getFirst() + u * xDelta, p1.getSecond() + u * yDelta);
-        }
+        if (u < 0)
+            return p1;
 
-        return closestPoint;
+        if (u > 1)
+            return p2;
+
+        return new DoublePair(p1.getFirst() + u * xDelta, p1.getSecond() + u * yDelta);
     }
 }

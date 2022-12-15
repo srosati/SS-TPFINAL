@@ -13,55 +13,56 @@ public class Particle {
     private final int id;
     private final double radius;
     private final double length;
-    private double rotation;
     private final double mass;
 
     private final Set<Particle> neighbours = new HashSet<>();
 
-    private final DoublePair[] curr = new DoublePair[3];
-    private final DoublePair[] prev = new DoublePair[3];
-    private final DoublePair[] next = new DoublePair[3];
-    private DoublePair predV;
+    private final DoubleTriad[] curr = new DoubleTriad[3];
+    private final DoubleTriad[] prev = new DoubleTriad[3];
+    private final DoubleTriad[] next = new DoubleTriad[3];
+    private DoubleTriad predV;
 
-    public Particle(double radius, double length, DoublePair position, double rotation) {
+    public Particle(double radius, double length, DoubleTriad position) {
         this.id = SEQ++;
         this.mass = Constants.MASS;
         this.radius = radius;
         this.length = length;
-        this.rotation = rotation;
         this.setCurr(R.POS, position);
-        predV = new DoublePair(0.0, 0.0);
+        predV = new DoubleTriad(0.0, 0.0, 0.0);
     }
 
-    public Particle(int id, double radius, double length, DoublePair position, double rotation) {
+    public Particle(int id, double radius, double length, DoubleTriad position) {
         this.id = id;
         SEQ++;
         this.mass = Constants.MASS;
         this.radius = radius;
         this.length = length;
-        this.rotation = rotation;
         this.setCurr(R.POS, position);
-        predV = new DoublePair(0.0, 0.0);
+        predV = new DoubleTriad(0.0, 0.0, 0.0);
     }
 
     public void initRs() {
-        curr[R.VEL] = new DoublePair(0.0, 0.0);
+        curr[R.VEL] = new DoubleTriad(0.0, 0.0, 0.0);
         double acc = Constants.DESIRED_VELOCITY / Constants.PROP_FACTOR;
-        curr[R.ACC] = new DoublePair(0.0, acc);
+        curr[R.ACC] = new DoubleTriad(0.0, acc, 0.0);
 
-        prev[R.POS] = new DoublePair(Integration.eulerR(curr[R.POS].getFirst(), 0.0, -Constants.STEP, mass, 0),
-                Integration.eulerR(curr[R.POS].getSecond(), 0.0, -Constants.STEP, mass,
-                        mass * acc ));
+        prev[R.POS] = new DoubleTriad(
+                Integration.eulerR(curr[R.POS].getFirst(), 0.0, -Constants.STEP, mass, 0),
+                Integration.eulerR(curr[R.POS].getSecond(), 0.0, -Constants.STEP, mass, mass * acc),
+                Integration.eulerR(curr[R.POS].getThird(), 0.0, -Constants.STEP, mass, 0)
+        );
 
-        prev[R.VEL] = new DoublePair(Integration.eulerV(0.0, -Constants.STEP, mass, 0),
-                Integration.eulerV(0.0, -Constants.STEP, mass, acc * mass));
+        prev[R.VEL] = new DoubleTriad(
+                Integration.eulerV(0.0, -Constants.STEP, mass, 0),
+                Integration.eulerV(0.0, -Constants.STEP, mass, acc * mass),
+                Integration.eulerV(0.0, -Constants.STEP, mass, 0)
+        );
 
-        prev[R.ACC] = new DoublePair(0.0, acc);
+        prev[R.ACC] = new DoubleTriad(0.0, acc, 0.0);
     }
 
     public double distanceTo(Particle other) {
-        return MathUtils.minDistanceBetweenSegments(curr[R.POS], length, rotation,
-                other.curr[R.POS], other.length, other.rotation);
+        return MathUtils.minDistanceBetweenSegments(curr[R.POS], length, other.curr[R.POS], other.length);
     }
     public boolean isColliding(Particle other) {
         if (this.equals(other))
@@ -71,9 +72,10 @@ public class Particle {
         return distance <= radius + other.radius;
     }
 
-    public DoublePair calculateForces() {
+    public DoubleTriad calculateForces() {
         double fx = 0;
         double fy = mass * (Constants.DESIRED_VELOCITY - predV.getSecond()) / Constants.PROP_FACTOR;
+        double fw = 0; // TODO: Impl
 
         if (Double.isNaN(predV.getSecond()) ) {
             System.out.println("NAN");
@@ -89,7 +91,7 @@ public class Particle {
             fy += fn * normalVerser.getSecond() + ft * normalVerser.getFirst();
         }
 
-        return new DoublePair(fx, fy);
+        return new DoubleTriad(fx, fy, fw);
     }
 
     private double tangentialForce(double rVx, double rVy, DoublePair normalVerser, double overlap) {
@@ -117,17 +119,17 @@ public class Particle {
     }
 
     public DoublePair getCollisionVerser(Particle other) {
-//        DoublePair[] closestPoints = MathUtils.closestPointsBetweenSegments(next[R.POS], length, rotation,
-//                other.next[R.POS], other.length, other.rotation);
-//
-//        DoublePair first = closestPoints[0];
-//        DoublePair second = closestPoints[1];
-//        double dx = second.getFirst() - first.getFirst();
-//        double dy = second.getSecond() - first.getSecond();
+        DoublePair[] closestPoints = MathUtils.closestPointsBetweenSegments(next[R.POS], length, other.next[R.POS],
+                other.length);
+
+        DoublePair first = closestPoints[0];
+        DoublePair second = closestPoints[1];
+        double dx = second.getFirst() - first.getFirst();
+        double dy = second.getSecond() - first.getSecond();
         // FIXME: La colision no es de centro a centro, pero si descomento lo de arriba tira NANs
 
-        double dx = other.getNext(R.POS).getFirst() - next[R.POS].getFirst();
-        double dy = other.getNext(R.POS).getSecond() - next[R.POS].getSecond();
+//        double dx = other.getNext(R.POS).getFirst() - next[R.POS].getFirst();
+//        double dy = other.getNext(R.POS).getSecond() - next[R.POS].getSecond();
 
         double dR = Math.sqrt(dx * dx + dy * dy);
 
@@ -150,35 +152,35 @@ public class Particle {
         return neighbours;
     }
 
-    public DoublePair getNext(int index) {
+    public DoubleTriad getNext(int index) {
         return next[index];
     }
 
-    public DoublePair getPredV() {
+    public DoubleTriad getPredV() {
         return predV;
     }
 
-    public void setPredV(DoublePair predV) {
+    public void setPredV(DoubleTriad predV) {
         this.predV = predV;
     }
 
-    public void setPrev(int index, DoublePair pair) {
+    public void setPrev(int index, DoubleTriad pair) {
         prev[index] = pair;
     }
 
-    public void setNextR(int index, DoublePair pair) {
+    public void setNextR(int index, DoubleTriad pair) {
         this.next[index] = pair;
     }
 
-    public DoublePair getCurrent(int index) {
+    public DoubleTriad getCurrent(int index) {
         return curr[index];
     }
 
-    public void setCurr(int index, DoublePair pair) {
-        curr[index] = pair;
+    public void setCurr(int index, DoubleTriad triad) {
+        curr[index] = triad;
     }
 
-    public DoublePair getPrev(int index) {
+    public DoubleTriad getPrev(int index) {
         return prev[index];
     }
 
@@ -197,14 +199,6 @@ public class Particle {
 
     public double getLength() {
         return length;
-    }
-
-    public double getRotation() {
-        return rotation;
-    }
-
-    public void setRotation(double rotation) {
-        this.rotation = rotation;
     }
 }
 
