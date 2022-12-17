@@ -81,7 +81,7 @@ public class Main {
                         double z = w1 * z2 + x1 * y2 - y1 * x2 + z1 * w2;
 
                         // TODO: Pasar computo de quaterniones a python
-                        // Solo deberia escribir rotacion (p.getRotation())
+                        // Solo deberia escribir rotacion
 
                         outFile.write(String.format(Locale.ROOT, "%d %f %f %f %f %f %f %f %f\n", p.getId(),
                                 p.getCurrent(R.POS).getFirst(),

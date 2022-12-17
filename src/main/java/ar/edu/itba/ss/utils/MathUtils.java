@@ -52,6 +52,78 @@ public class MathUtils {
         return p3.distanceTo(closestPoint);
     }
 
+
+    /*
+    * Get closest points on two line segments
+    * Segment one starts at p1 and ends at p2
+    * Segment two starts at p3 and ends at p4
+    * Returns an array of two DoublePair objects
+    * The first object is the closest point on segment one
+    * The second object is the closest point on segment two
+    */
+//    public static DoublePair[] closestPointsBetweenSegments(DoublePair p1, DoublePair p2, DoublePair p3, DoublePair p4) {
+//        DoublePair closestPoint1 = closestPointOnSegment(p1, p2, p3);
+//        DoublePair closestPoint2 = closestPointOnSegment(p3, p4, closestPoint1);
+//        double distance = closestPoint1.distanceTo(closestPoint2);
+//
+//        double minDistance = distance;
+//        DoublePair[] closestPoints = new DoublePair[]{closestPoint1, closestPoint2};
+//
+//        DoublePair closestPoint3 = closestPointOnSegment(p1, p2, p4);
+//        DoublePair closestPoint4 = closestPointOnSegment(p3, p4, closestPoint3);
+//        distance = closestPoint3.distanceTo(closestPoint4);
+//        if (distance < minDistance) {
+//            minDistance = distance;
+//            closestPoints = new DoublePair[]{closestPoint3, closestPoint4};
+//        }
+//
+//        DoublePair closestPoint5 = closestPointOnSegment(p3, p4, p1);
+//        DoublePair closestPoint6 = closestPointOnSegment(p1, p2, closestPoint5);
+//        distance = closestPoint5.distanceTo(closestPoint6);
+//        if (distance < minDistance) {
+//            minDistance = distance;
+//            closestPoints = new DoublePair[]{closestPoint5, closestPoint6};
+//        }
+//
+//        DoublePair closestPoint7 = closestPointOnSegment(p3, p4, p2);
+//        DoublePair closestPoint8 = closestPointOnSegment(p1, p2, closestPoint7);
+//        distance = closestPoint7.distanceTo(closestPoint8);
+//        if (distance < minDistance)
+//            closestPoints = new DoublePair[]{closestPoint7, closestPoint8};
+//
+//        return closestPoints;
+//    }
+
+    //TODO: mirar
+    public static DoublePair[] closestPointsBetweenSegments(DoublePair p1, DoublePair p2, DoublePair p3, DoublePair p4) {
+        DoublePair closestPoint1 = closestPointOnSegment(p1, p2, p3);
+        double distance = closestPoint1.distanceTo(p3);
+
+        double minDistance = distance;
+        DoublePair[] closestPoints = new DoublePair[]{closestPoint1, p3};
+
+        DoublePair closestPoint2 = closestPointOnSegment(p1, p2, p4);
+        distance = closestPoint2.distanceTo(p4);
+        if (distance < minDistance) {
+            minDistance = distance;
+            closestPoints = new DoublePair[]{closestPoint2, p4};
+        }
+
+        DoublePair closestPoint3 = closestPointOnSegment(p3, p4, p1);
+        distance = closestPoint3.distanceTo(p1);
+        if (distance < minDistance) {
+            minDistance = distance;
+            closestPoints = new DoublePair[]{p1, closestPoint3};
+        }
+
+        DoublePair closestPoint4 = closestPointOnSegment(p3, p4, p2);
+        distance = closestPoint4.distanceTo(p2);
+        if (distance < minDistance)
+            closestPoints = new DoublePair[]{p2, closestPoint4};
+
+        return closestPoints;
+    }
+
     public static DoublePair[] closestPointsBetweenSegments(DoubleTriad pos1, double length1, DoubleTriad pos2, double length2) {
         DoublePair[] points1 = getPoints(pos1, length1);
         if (length2 == 0.0) { // PARED
@@ -63,45 +135,9 @@ public class MathUtils {
         return closestPointsBetweenSegments(points1[0], points1[1], points2[0], points2[1]);
     }
 
-    /*
-    * Get closest points on two line segments
-    * Segment one starts at p1 and ends at p2
-    * Segment two starts at p3 and ends at p4
-    * Returns an array of two DoublePair objects
-    * The first object is the closest point on segment one
-    * The second object is the closest point on segment two
-    */
-    public static DoublePair[] closestPointsBetweenSegments(DoublePair p1, DoublePair p2, DoublePair p3, DoublePair p4) {
-        DoublePair closestPoint1 = closestPointOnSegment(p1, p2, p3);
-        DoublePair closestPoint2 = closestPointOnSegment(p3, p4, closestPoint1);
-        double distance = closestPoint1.distanceTo(closestPoint2);
-
-        double minDistance = distance;
-        DoublePair[] closestPoints = new DoublePair[]{closestPoint1, closestPoint2};
-
-        DoublePair closestPoint3 = closestPointOnSegment(p1, p2, p4);
-        DoublePair closestPoint4 = closestPointOnSegment(p3, p4, closestPoint3);
-        distance = closestPoint3.distanceTo(closestPoint4);
-        if (distance < minDistance) {
-            minDistance = distance;
-            closestPoints = new DoublePair[]{closestPoint3, closestPoint4};
-        }
-
-        DoublePair closestPoint5 = closestPointOnSegment(p3, p4, p1);
-        DoublePair closestPoint6 = closestPointOnSegment(p1, p2, closestPoint5);
-        distance = closestPoint5.distanceTo(closestPoint6);
-        if (distance < minDistance) {
-            minDistance = distance;
-            closestPoints = new DoublePair[]{closestPoint5, closestPoint6};
-        }
-
-        DoublePair closestPoint7 = closestPointOnSegment(p3, p4, p2);
-        DoublePair closestPoint8 = closestPointOnSegment(p1, p2, closestPoint7);
-        distance = closestPoint7.distanceTo(closestPoint8);
-        if (distance < minDistance)
-            closestPoints = new DoublePair[]{closestPoint7, closestPoint8};
-
-        return closestPoints;
+    public static DoublePair[] closestPointsBetweenSegments(DoubleTriad pos, double length, DoublePair p1, DoublePair p2) {
+        DoublePair[] points = getPoints(pos, length);
+        return closestPointsBetweenSegments(points[0], points[1], p1, p2);
     }
 
     private static DoublePair closestPointOnSegment(DoublePair p1, DoublePair p2, DoublePair p3) {

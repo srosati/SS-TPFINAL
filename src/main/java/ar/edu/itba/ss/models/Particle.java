@@ -11,8 +11,8 @@ import java.util.Set;
 public class Particle {
     private static int SEQ = 0;
     private final int id;
-    private final double radius;
-    private final double length;
+    private double radius;
+    private double length;
     private final double mass;
 
     private final Set<Particle> neighbours = new HashSet<>();
@@ -64,31 +64,51 @@ public class Particle {
     public double distanceTo(Particle other) {
         return MathUtils.minDistanceBetweenSegments(curr[R.POS], length, other.curr[R.POS], other.length);
     }
+
     public boolean isColliding(Particle other) {
         if (this.equals(other))
             return false;
 
         double distance = this.distanceTo(other);
-        return distance <= radius + other.radius;
+        return Double.compare(distance, radius + other.radius) <= 0;
     }
 
     public DoubleTriad calculateForces() {
         double fx = 0;
         double fy = mass * (Constants.DESIRED_VELOCITY - predV.getSecond()) / Constants.PROP_FACTOR;
-        double fw = 0; // TODO: Impl
+        double fw = 0;
 
-        if (Double.isNaN(predV.getSecond()) ) {
+        if (Double.isNaN(predV.getSecond())) {
             System.out.println("NAN");
         }
 
         for (Particle neighbour : neighbours) {
-            DoublePair normalVerser = getCollisionVerser(neighbour);
-            double overlap = getOverlap(neighbour);
+            DoublePair[] closestPoints = MathUtils.closestPointsBetweenSegments(curr[R.POS], length,
+                    neighbour.curr[R.POS], neighbour.length);
+
+            DoublePair normalVerser = getCollisionVerser(closestPoints);
+
+            double overlap = getOverlap(closestPoints, neighbour);
+            if (overlap < 0) {
+//                System.out.println("Overlap: " + overlap);
+                continue;
+            }
             double fn = -Constants.KN * overlap;
             double ft = tangentialForce(neighbour, normalVerser, overlap);
 
-            fx += fn * normalVerser.getFirst() - ft * normalVerser.getSecond();
-            fy += fn * normalVerser.getSecond() + ft * normalVerser.getFirst();
+            double forceX = fn * normalVerser.getFirst() - ft * normalVerser.getSecond();
+            double forceY = fn * normalVerser.getSecond() + ft * normalVerser.getFirst();
+
+            fx += forceX;
+            fy += forceY;
+
+            double rx = next[R.POS].getFirst() - closestPoints[0].getFirst();
+            double ry = next[R.POS].getSecond() - closestPoints[0].getSecond();
+
+            fw += (forceX * rx + forceY * ry) * Math.sin(next[R.POS].getThird());
+            // FIXME: Esto no anda bien
+//            double dist = closestPoints[0].distanceTo(next[R.POS]);
+//            fw += fn * dist;
         }
 
         return new DoubleTriad(fx, fy, fw);
@@ -105,9 +125,9 @@ public class Particle {
         return tangentialForce(relativeVx, relativeVy, normalVerser, overlap);
     }
 
-    public double getOverlap(Particle other) {
-        double distance = this.distanceTo(other);
-        return Math.abs(radius + other.getRadius() - distance);
+    public double getOverlap(DoublePair[] closestPoints, Particle other) {
+        double distance = closestPoints[0].distanceTo(closestPoints[1]);
+        return radius + other.getRadius() - distance;
     }
 
     public void addNeighbour(Particle neighbour) {
@@ -118,22 +138,35 @@ public class Particle {
         neighbours.clear();
     }
 
-    public DoublePair getCollisionVerser(Particle other) {
-        DoublePair[] closestPoints = MathUtils.closestPointsBetweenSegments(next[R.POS], length, other.next[R.POS],
-                other.length);
-
+    public DoublePair getCollisionVerser(DoublePair[] closestPoints) {
         DoublePair first = closestPoints[0];
         DoublePair second = closestPoints[1];
         double dx = second.getFirst() - first.getFirst();
         double dy = second.getSecond() - first.getSecond();
-        // FIXME: La colision no es de centro a centro, pero si descomento lo de arriba tira NANs
-
-//        double dx = other.getNext(R.POS).getFirst() - next[R.POS].getFirst();
-//        double dy = other.getNext(R.POS).getSecond() - next[R.POS].getSecond();
 
         double dR = Math.sqrt(dx * dx + dy * dy);
 
         return new DoublePair(dx / dR, dy / dR);
+    }
+
+    public double getMomentOfInertia() {
+        // Calculate mass for rectangle and circle section
+        double circleArea = Math.PI * radius * radius;
+        double rectArea = 2 * length * radius;
+        double rectMassPercent = rectArea / (circleArea + rectArea);
+
+        // Moment of inertia for rectangle shaped part
+        // width is length, height is radius
+        double rectMass = mass * rectMassPercent;
+        double rectMoment = rectMass * (length * length + 4 * radius * radius) / 12;
+
+        // Moment of inertia for semicircles at each end
+        // each semicircle is at length/2 from the center of mass
+        double circleMass = mass * (1 - rectMassPercent);
+        double circleMoment = circleMass * (radius * radius / 2 + length * length / 4); // Teorema de Steiner
+
+        // Aditive moments of inertia
+        return rectMoment + circleMoment;
     }
 
     public int getId() {
@@ -142,6 +175,18 @@ public class Particle {
 
     public double getRadius() {
         return radius;
+    }
+
+    public void setRadius(double radius) {
+        this.radius = radius;
+    }
+
+    public double getLength() {
+        return length;
+    }
+
+    public void setLength(double length) {
+        this.length = length;
     }
 
     public double getMass() {
@@ -197,8 +242,5 @@ public class Particle {
         return Objects.hash(getId());
     }
 
-    public double getLength() {
-        return length;
-    }
 }
 
