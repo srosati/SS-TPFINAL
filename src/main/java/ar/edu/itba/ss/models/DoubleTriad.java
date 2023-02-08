@@ -8,13 +8,6 @@ public class DoubleTriad extends DoublePair {
         this.third = third;
     }
 
-    // Distance to another DoubleTriad
-    public double distanceTo(DoubleTriad other) {
-        return Math.sqrt(Math.pow(other.getFirst() - getFirst(), 2) +
-                    Math.pow(other.getSecond() - getSecond(), 2) + 
-                    Math.pow(other.getThird() - third, 2));
-    }
-
     public double getThird() {
         return third;
     }

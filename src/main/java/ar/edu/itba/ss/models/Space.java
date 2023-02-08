@@ -24,8 +24,7 @@ public class Space {
     public Space(List<Particle> particles) {
         this.particleList = particles;
 
-        double maxRadius = particles.stream().mapToDouble(Particle::getRadius).max()
-                .orElseThrow(RuntimeException::new);
+        double maxRadius = Constants.MAX_LENGTH / 2 + Constants.MAX_RADIUS;
 
         double l = Constants.LENGTH;
         double w = Constants.WIDTH;
@@ -53,7 +52,7 @@ public class Space {
                     currAcc.getSecond(), prevAcc.getSecond());
             double r0w = Integration.beemanR(currPos.getThird(), currVel.getThird(), Constants.STEP,
                     currAcc.getThird(), prevAcc.getThird());
-            particle.setNextR(0, new DoubleTriad(r0X, r0Y, r0w));
+            particle.setNextR(R.POS, new DoubleTriad(r0X, r0Y, r0w));
 
             // Predict Speed for each particle
             double r1X = Integration.beemanPredV(currVel.getFirst(), Constants.STEP, currAcc.getFirst(),
@@ -81,7 +80,7 @@ public class Space {
             double r1Y = Integration.beemanV(currVel.getSecond(), Constants.STEP, currAcc.getSecond(),
                     prevAcc.getSecond(), force.getSecond() / p.getMass());
             double r1w = Integration.beemanV(currVel.getThird(), Constants.STEP, currAcc.getThird(),
-                    prevAcc.getThird(), 0.0);
+                    prevAcc.getThird(), force.getThird() / p.getMomentOfInertia());
 
             p.setNextR(R.VEL, new DoubleTriad(r1X, r1Y, r1w));
         });
@@ -91,7 +90,7 @@ public class Space {
         particleList.forEach(p -> {
             DoubleTriad force = p.calculateForces();
             p.setNextR(R.ACC, new DoubleTriad(force.getFirst() / p.getMass(),
-                    force.getSecond() / p.getMass(), force.getThird() / p.getMass()));
+                    force.getSecond() / p.getMass(), force.getThird() / p.getMomentOfInertia()));
         });
 
         particleList.forEach(p -> {
@@ -177,14 +176,17 @@ public class Space {
 
         // BOTTOM
         if (row == 0) {
-            double dy = MathUtils.minDistanceBetweenSegments(particle.getNext(R.POS), l,
+            DoublePair[] closestPoints = MathUtils.closestPointsBetweenSegments(
+                    particle.getNext(R.POS), l,
                     new DoublePair(0, 0), new DoublePair(Constants.WIDTH, 0));
+
+            double dy = Math.abs(closestPoints[0].getSecond() - closestPoints[1].getSecond());
 
             if (Double.compare(r, dy) >= 0) {
                 if (((x <= Constants.WIDTH / 2 - Space.SLIT_SIZE / 2) ||
                         (x >= Constants.WIDTH / 2 + Space.SLIT_SIZE / 2))) {
                     // Choque vertical con la pared
-                    DoubleTriad position = new DoubleTriad(x, -r, 0);
+                    DoubleTriad position = new DoubleTriad(closestPoints[1].getFirst(), -r, 0);
                     particle.addNeighbour(getWallParticle(position, r));
                 } else if ((x - r <= (Constants.WIDTH - Space.SLIT_SIZE) / 2)) {
                     // Borde izquierdo slit
@@ -200,11 +202,14 @@ public class Space {
 
         // TOP
         if (row == gridM - 1) {
-            double dY = MathUtils.minDistanceBetweenSegments(particle.getNext(R.POS), l,
+            DoublePair[] closestPoints = MathUtils.closestPointsBetweenSegments(
+                    particle.getNext(R.POS), l,
                     new DoublePair(0, Constants.LENGTH), new DoublePair(Constants.WIDTH, Constants.LENGTH));
 
+            double dY = Math.abs(closestPoints[0].getSecond() - closestPoints[1].getSecond());
+
             if (Double.compare(r, dY) >= 0) {
-                DoubleTriad position = new DoubleTriad(x, Constants.LENGTH + r, 0);
+                DoubleTriad position = new DoubleTriad(closestPoints[1].getFirst(), Constants.LENGTH + r, 0);
                 particle.addNeighbour(getWallParticle(position, r));
             }
         }
@@ -212,21 +217,26 @@ public class Space {
         if (y >= 0) {
             // LEFT
             if (col == 0) {
-                double dX = MathUtils.minDistanceBetweenSegments(particle.getNext(R.POS), l,
+                DoublePair[] closestPoints = MathUtils.closestPointsBetweenSegments(
+                        particle.getNext(R.POS), l,
                         new DoublePair(0, 0), new DoublePair(0, Constants.LENGTH));
+                double dX = Math.abs(closestPoints[0].getFirst() - closestPoints[1].getFirst());
+
                 if (Double.compare(r, dX) >= 0) {
-                    DoubleTriad position = new DoubleTriad(-r, y, 0);
+                    DoubleTriad position = new DoubleTriad(-r, closestPoints[1].getSecond(), 0);
                     particle.addNeighbour(getWallParticle(position, r));
                 }
             }
 
             // RIGHT
             if (col == gridN - 1) {
-                double dX = MathUtils.minDistanceBetweenSegments(particle.getNext(R.POS), l,
+                DoublePair[] closestPoints = MathUtils.closestPointsBetweenSegments(
+                        particle.getNext(R.POS), l,
                         new DoublePair(Constants.WIDTH, 0), new DoublePair(Constants.WIDTH, Constants.LENGTH));
+                double dX = Math.abs(closestPoints[0].getFirst() - closestPoints[1].getFirst());
 
                 if (Double.compare(r, dX) >= 0) {
-                    DoubleTriad position = new DoubleTriad(Constants.WIDTH + r, y, 0);
+                    DoubleTriad position = new DoubleTriad(Constants.WIDTH + r, closestPoints[1].getSecond(), 0);
                     particle.addNeighbour(getWallParticle(position, r));
                 }
             }
