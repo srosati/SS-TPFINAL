@@ -24,9 +24,9 @@ public class ParticleGenerator {
         try (FileWriter writer = new FileWriter(staticFile)) {
             writer.write(Constants.PARTICLE_AMOUNT + "\n");
             for (Particle p : particles) {
-                writer.write(String.format(Locale.ROOT, "%d %f %f %f %f\n", p.getId(),
+                writer.write(String.format(Locale.ROOT, "%d %f %f %f %f %f\n", p.getId(),
                         p.getCurrent(R.POS).getFirst(), p.getCurrent(R.POS).getSecond(),
-                        p.getRadius(), p.getLength()));
+                        p.getRadius(), p.getLength(), p.getCurrent(R.POS).getThird()));
             }
         } catch (
                 IOException e) {
@@ -54,7 +54,7 @@ public class ParticleGenerator {
                 double y = Double.parseDouble(line[2]);
                 double radius = Double.parseDouble(line[3]);
                 double length = Double.parseDouble(line[4]);
-                double w = Double.parseDouble(line[5]);
+                double w = Double.parseDouble(line[5]); //TODO: no esta generando el w
                 particleList.add(new Particle(id, radius, length, new DoubleTriad(x, y, w)));
             }
         } catch (NoSuchElementException | IllegalArgumentException e) {

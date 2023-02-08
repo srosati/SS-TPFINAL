@@ -63,30 +63,38 @@ public class Main {
                     outFile.write(Constants.PARTICLE_AMOUNT + "\n");
                     outFile.write("iter " + iter + "\n");
                     for (Particle p : particles) {
-                        // Get orientation Quaternion from rotation
-                        double w1 = Math.cos(Math.PI / 4);
-                        double x1 = Math.sin(Math.PI / 4);
-                        double y1 = 0;
-                        double z1 = 0;
+//                        // Get orientation Quaternion from rotation
+//                        double w1 = Math.cos(Math.PI / 4);
+//                        double x1 = Math.sin(Math.PI / 4);
+//                        double y1 = 0;
+//                        double z1 = 0;
+//
+//                        double w2 = Math.cos(p.getCurrent(R.POS).getThird() / 2);
+//                        double x2 = 0;
+//                        double y2 = -Math.sin(p.getCurrent(R.POS).getThird() / 2);
+//                        double z2 = 0;
+//
+//                        // Multiply quaternions
+//                        double w = w1 * w2 - x1 * x2 - y1 * y2 - z1 * z2;
+//                        double x = w1 * x2 + x1 * w2 + y1 * z2 - z1 * y2;
+//                        double y = w1 * y2 - x1 * z2 + y1 * w2 + z1 * x2;
+//                        double z = w1 * z2 + x1 * y2 - y1 * x2 + z1 * w2;
+//
+//                        // TODO: Pasar computo de quaternions a python
+//                        // Solo deberia escribir rotacion (p.getRotation())
+//
+//                        outFile.write(String.format(Locale.ROOT, "%d %f %f %f %f %f %f %f %f\n", p.getId(),
+//                                p.getCurrent(R.POS).getFirst(),
+//                                p.getCurrent(R.POS).getSecond(),
+//                                p.getRadius(), p.getLength(), w, x, y, z));
 
-                        double w2 = Math.cos(p.getCurrent(R.POS).getThird() / 2);
-                        double x2 = 0;
-                        double y2 = -Math.sin(p.getCurrent(R.POS).getThird() / 2);
-                        double z2 = 0;
-
-                        // Multiply quaternions
-                        double w = w1 * w2 - x1 * x2 - y1 * y2 - z1 * z2;
-                        double x = w1 * x2 + x1 * w2 + y1 * z2 - z1 * y2;
-                        double y = w1 * y2 - x1 * z2 + y1 * w2 + z1 * x2;
-                        double z = w1 * z2 + x1 * y2 - y1 * x2 + z1 * w2;
-
-                        // TODO: Pasar computo de quaterniones a python
-                        // Solo deberia escribir rotacion (p.getRotation())
-
-                        outFile.write(String.format(Locale.ROOT, "%d %f %f %f %f %f %f %f %f\n", p.getId(),
+                        outFile.write(String.format(Locale.ROOT, "%d %f %f %f %f %f\n",
+                                p.getId(),
                                 p.getCurrent(R.POS).getFirst(),
                                 p.getCurrent(R.POS).getSecond(),
-                                p.getRadius(), p.getLength(), w, x, y, z));
+                                p.getCurrent(R.POS).getThird(),
+                                p.getRadius(),
+                                p.getLength()));
                     }
                 }
 
