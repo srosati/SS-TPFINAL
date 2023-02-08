@@ -90,7 +90,6 @@ public class Particle {
 
             double overlap = getOverlap(closestPoints, neighbour);
             if (overlap < 0) {
-//                System.out.println("Overlap: " + overlap);
                 continue;
             }
             double fn = -Constants.KN * overlap;
@@ -102,10 +101,20 @@ public class Particle {
             fx += forceX;
             fy += forceY;
 
-            double rx = next[R.POS].getFirst() - closestPoints[0].getFirst();
-            double ry = next[R.POS].getSecond() - closestPoints[0].getSecond();
+            double overlapX = (closestPoints[0].getFirst() + closestPoints[1].getFirst()) / 2;
+            double overlapY = (closestPoints[0].getSecond() + closestPoints[1].getSecond()) / 2;
 
-            fw += (forceX * rx + forceY * ry) * Math.sin(next[R.POS].getThird());
+//            double rx = next[R.POS].getFirst() - closestPoints[0].getFirst();
+//            double ry = next[R.POS].getSecond() - closestPoints[0].getSecond();
+
+            double rx = overlapX - next[R.POS].getFirst();
+            double ry = overlapY - next[R.POS].getSecond();
+
+            double forceAngle = Math.atan2(forceY, forceX);
+            double collisionAngle = Math.atan2(ry, rx);
+            double angle = forceAngle - collisionAngle;
+
+            fw += (forceX * rx + forceY * ry) * Math.sin(angle);
             // FIXME: Esto no anda bien
 //            double dist = closestPoints[0].distanceTo(next[R.POS]);
 //            fw += fn * dist;

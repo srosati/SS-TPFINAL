@@ -70,7 +70,7 @@ public class ParticleGenerator {
         boolean colliding;
         DoubleTriad position;
         do {
-            position = randomPosition(radius + length, reentrant); // TODO: hacer bien
+            position = randomPosition(radius, length, reentrant);
 
             colliding = false;
             for (Particle p : particles) {
@@ -84,10 +84,14 @@ public class ParticleGenerator {
         return position;
     }
 
-    private static DoubleTriad randomPosition(double radius, boolean reentrant) {
-        double x = randomNum(radius, Constants.WIDTH - radius);
-        double y = randomNum(radius + (reentrant ? Constants.RE_ENTRANCE_MIN_Y : 0), Constants.LENGTH - radius);
+    private static DoubleTriad randomPosition(double radius, double length, boolean reentrant) {
         double w = randomNum(0, 2 * Math.PI);
+
+        double dx = (length/2) + radius; // TODO: ver angulo
+        double x = randomNum(dx, Constants.WIDTH - dx);
+
+        double dy = (length/2) + radius;
+        double y = randomNum(dy + (reentrant ? Constants.RE_ENTRANCE_MIN_Y : 0), Constants.LENGTH - dy);
 
         return new DoubleTriad(x, y, w);
     }

@@ -31,7 +31,7 @@ out_file.close()
 print("Generating walls...")
 width = 20
 height = 70
-slit = 5
+slit = 3
 curr_id = 501
 max_iter = 100
 with open('../outFiles/walls.txt', 'w') as wall_file:
