@@ -83,44 +83,112 @@ public class Particle {
         }
 
         for (Particle neighbour : neighbours) {
-            DoublePair[] closestPoints = MathUtils.closestPointsBetweenSegments(curr[R.POS], length,
-                    neighbour.curr[R.POS], neighbour.length);
+//            DoublePair[] closestPoints = MathUtils.closestPointsBetweenSegments(curr[R.POS], length,
+//                    neighbour.curr[R.POS], neighbour.length);
 
-            DoublePair normalVerser = getCollisionVerser(closestPoints);
+            DoublePair p1Center = new DoublePair(next[R.POS].getFirst(), next[R.POS].getSecond());
+            double dx = length * Math.cos(next[R.POS].getThird()) + radius;
+            double dy = length * Math.sin(next[R.POS].getThird()) + radius;
+            DoublePair[] p1V = new DoublePair[]{
+                    new DoublePair(p1Center.getFirst() + dx, p1Center.getSecond() + dy),
+                    new DoublePair(p1Center.getFirst() - dx, p1Center.getSecond() - dy)
+            };
 
-            double overlap = getOverlap(closestPoints, neighbour);
-            if (overlap < 0) {
-                continue;
+            DoublePair p2Center = new DoublePair(neighbour.next[R.POS].getFirst(), neighbour.next[R.POS].getSecond());
+            dx = neighbour.length * Math.cos(neighbour.next[R.POS].getThird()) + neighbour.radius;
+            dy = neighbour.length * Math.sin(neighbour.next[R.POS].getThird()) + neighbour.radius;
+            DoublePair[] p2V = new DoublePair[]{
+                    new DoublePair(p2Center.getFirst() + dx, p2Center.getSecond() + dy),
+                    new DoublePair(p2Center.getFirst() - dx, p2Center.getSecond() - dy)
+            };
+
+
+            for (DoublePair v : p1V) {
+                DoubleTriad forces = getForces(p2V, v, radius, neighbour.radius, predV, neighbour.predV);
+                fx += forces.getFirst();
+                fy += forces.getSecond();
+                fw += forces.getThird();
             }
-            double fn = -Constants.KN * overlap;
-            double ft = tangentialForce(neighbour, normalVerser, overlap);
 
-            double forceX = fn * normalVerser.getFirst() - ft * normalVerser.getSecond();
-            double forceY = fn * normalVerser.getSecond() + ft * normalVerser.getFirst();
+            for (DoublePair v : p2V) {
+                DoubleTriad forces = getForces(p1V, v, radius, neighbour.radius, neighbour.predV, predV);
+                fx += forces.getFirst();
+                fy += forces.getSecond();
+                fw += forces.getThird();
+            }
 
-            fx += forceX;
-            fy += forceY;
-
-            double overlapX = (closestPoints[0].getFirst() + closestPoints[1].getFirst()) / 2;
-            double overlapY = (closestPoints[0].getSecond() + closestPoints[1].getSecond()) / 2;
-
-//            double rx = next[R.POS].getFirst() - closestPoints[0].getFirst();
-//            double ry = next[R.POS].getSecond() - closestPoints[0].getSecond();
-
-            double rx = overlapX - next[R.POS].getFirst();
-            double ry = overlapY - next[R.POS].getSecond();
-
-            double forceAngle = Math.atan2(forceY, forceX);
-            double collisionAngle = Math.atan2(ry, rx);
-            double angle = forceAngle - collisionAngle;
-
-            fw += (forceX * rx + forceY * ry) * Math.sin(angle);
+//            DoublePair normalVerser = getCollisionVerser(closestPoints);
+//
+//            double overlap = getOverlap(closestPoints, neighbour);
+//            if (overlap < 0) {
+//                continue;
+//            }
+//            double fn = -Constants.KN * overlap;
+//            double ft = tangentialForce(neighbour, normalVerser, overlap);
+//
+//            double forceX = fn * normalVerser.getFirst() - ft * normalVerser.getSecond();
+//            double forceY = fn * normalVerser.getSecond() + ft * normalVerser.getFirst();
+//
+//            fx += forceX;
+//            fy += forceY;
+//
+//            double overlapX = (closestPoints[0].getFirst() + closestPoints[1].getFirst()) / 2;
+//            double overlapY = (closestPoints[0].getSecond() + closestPoints[1].getSecond()) / 2;
+//
+////            double rx = next[R.POS].getFirst() - closestPoints[0].getFirst();
+////            double ry = next[R.POS].getSecond() - closestPoints[0].getSecond();
+//
+//            double rx = overlapX - next[R.POS].getFirst();
+//            double ry = overlapY - next[R.POS].getSecond();
+//
+//            double forceAngle = Math.atan2(forceY, forceX);
+//            double collisionAngle = Math.atan2(ry, rx);
+//            double angle = forceAngle - collisionAngle;
+//
+//            fw += (forceX * rx + forceY * ry) * Math.sin(angle);
             // FIXME: Esto no anda bien
 //            double dist = closestPoints[0].distanceTo(next[R.POS]);
 //            fw += fn * dist;
         }
 
         return new DoubleTriad(fx, fy, fw);
+    }
+
+    private DoubleTriad getForces(DoublePair[] edge, DoublePair vertex, double r1, double r2, DoublePair v1, DoublePair v2) {
+        DoublePair closestPoint = MathUtils.closestPointOnSegment(edge[0], edge[1], vertex);
+        double distance = vertex.distanceTo(closestPoint);
+        DoublePair normalVerser = new DoublePair((closestPoint.getFirst() - vertex.getFirst()) / distance,
+                (closestPoint.getSecond() - vertex.getSecond()) / distance);
+        double overlap = Math.max(r1 + r2 - vertex.distanceTo(closestPoint), 0);
+        if (overlap == 0)
+            return new DoubleTriad(0,0,0);
+
+        double normalForce = Constants.KN * overlap;
+//        double tangentialForce = -tangentialForce(neighbour, normalVerser, overlap); //TODO: ver si el menos es equivalente (entendemos que si)
+
+        double rVx = v1.getFirst() - v2.getFirst();
+        double rVy = v1.getSecond() - v2.getSecond();
+
+        double relativeVt = -rVx * normalVerser.getSecond() + rVy * normalVerser.getFirst();
+
+        double tangentialForce = -Constants.KT * overlap * relativeVt;
+
+        double forceX = normalForce * normalVerser.getFirst() - tangentialForce * normalVerser.getSecond();
+        double forceY = normalForce * normalVerser.getSecond() + tangentialForce * normalVerser.getFirst();
+
+        double overlapCenterX = (vertex.getFirst() + closestPoint.getFirst()) / 2;
+        double overlapCenterY = (vertex.getSecond() + closestPoint.getSecond()) / 2;
+
+        double dx = overlapCenterX - next[R.POS].getFirst();
+        double dy = overlapCenterY - next[R.POS].getSecond();
+
+        double dist = Math.sqrt(dx * dx + dy * dy);
+        double force = Math.sqrt(forceX * forceX + forceY * forceY);
+
+        double angle = Math.acos((forceX * dx + forceY * dy) / (dist * force));
+        double torque = dist * force * Math.sin(angle);
+
+        return new DoubleTriad(forceX, forceY, torque);
     }
 
     private double tangentialForce(double rVx, double rVy, DoublePair normalVerser, double overlap) {

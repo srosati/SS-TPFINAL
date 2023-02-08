@@ -53,6 +53,7 @@ public class MathUtils {
     }
 
 
+
     /*
     * Get closest points on two line segments
     * Segment one starts at p1 and ends at p2
@@ -140,7 +141,7 @@ public class MathUtils {
         return closestPointsBetweenSegments(points[0], points[1], p1, p2);
     }
 
-    private static DoublePair closestPointOnSegment(DoublePair p1, DoublePair p2, DoublePair p3) {
+    public static DoublePair closestPointOnSegment(DoublePair p1, DoublePair p2, DoublePair p3) {
         double xDelta = p2.getFirst() - p1.getFirst();
         double yDelta = p2.getSecond() - p1.getSecond();
         double d2 = xDelta * xDelta + yDelta * yDelta;
