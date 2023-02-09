@@ -41,6 +41,8 @@ public class Main {
             particles.forEach(Particle::initRs);
             iter++;
 
+            outFile.write(Space.SLIT_SIZE + "\n");
+
             while (Double.compare(elapsed, Constants.SIMULATION_TIME) < 0) {
                 particles = space.getParticleList();
 
