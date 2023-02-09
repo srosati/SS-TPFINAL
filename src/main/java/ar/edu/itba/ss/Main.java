@@ -42,6 +42,7 @@ public class Main {
             iter++;
 
             outFile.write(Space.SLIT_SIZE + "\n");
+            System.out.println("Starting simulation...");
 
             while (Double.compare(elapsed, Constants.SIMULATION_TIME) < 0) {
                 particles = space.getParticleList();

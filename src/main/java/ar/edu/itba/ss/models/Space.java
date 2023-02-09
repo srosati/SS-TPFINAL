@@ -91,6 +91,7 @@ public class Space {
             DoubleTriad force = p.calculateForces();
             p.setNextR(R.ACC, new DoubleTriad(force.getFirst() / p.getMass(),
                     force.getSecond() / p.getMass(), force.getThird() / p.getMomentOfInertia()));
+                //TODO: hace falta el moment of inertia? o ya es el torque calculado
         });
 
         particleList.forEach(p -> {

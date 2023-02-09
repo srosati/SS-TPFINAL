@@ -145,9 +145,10 @@ public class MathUtils {
         double xDelta = p2.getFirst() - p1.getFirst();
         double yDelta = p2.getSecond() - p1.getSecond();
         double d2 = xDelta * xDelta + yDelta * yDelta;
+        if (d2 == 0)
+            return p1;
 
         double u = ((p3.getFirst() - p1.getFirst()) * xDelta + (p3.getSecond() - p1.getSecond()) * yDelta) / d2;
-
         if (u < 0)
             return p1;
 
