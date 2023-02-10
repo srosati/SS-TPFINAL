@@ -97,7 +97,7 @@ public class Particle {
     private DoublePair[] getVertices() {
         double dx = (length / 2) * Math.cos(next[R.POS].getThird());
         double dy = (length / 2) * Math.sin(next[R.POS].getThird());
-        return new DoublePair[] {
+        return new DoublePair[]{
                 new DoublePair(next[R.POS].getFirst() - dx, next[R.POS].getSecond() - dy),
                 new DoublePair(next[R.POS].getFirst() + dx, next[R.POS].getSecond() + dy)
         };
@@ -108,12 +108,16 @@ public class Particle {
         DoublePair[] otherVertices = other.getVertices();
 
         DoubleTriad totForce = new DoubleTriad(0, 0, 0);
-        for (DoublePair vertex: vertices) {
+        for (DoublePair vertex : vertices) {
             DoubleTriad force = getForceBetween(vertex, otherVertices, other, false);
             totForce = totForce.plus(force);
         }
 
-        for (DoublePair otherVertex: otherVertices) {
+        if (otherVertices[0].equals(otherVertices[1])) {
+            return totForce;
+        }
+
+        for (DoublePair otherVertex : otherVertices) {
             DoubleTriad force = getForceBetween(otherVertex, vertices, other, true);
             totForce = totForce.plus(force);
         }
@@ -133,7 +137,13 @@ public class Particle {
         DoublePair overlapCenter = vertex.plus(normalVerser.times((radius + other.radius) / 2).times(isOther ? -1 : 1));
 
         double normalForce = -Constants.KN * overlap;
-        double tanForce = tangentialForce(other, normalVerser, overlap, overlapCenter);
+
+        double tanForce;
+        if (!isOther) {
+            tanForce = tangentialForce(other, normalVerser, overlap, vertex, closestPoint);
+        } else {
+            tanForce = tangentialForce(other, normalVerser, overlap, closestPoint, vertex);
+        }
 
         double fx = normalForce * normalVerser.getFirst() - tanForce * normalVerser.getSecond();
         double fy = normalForce * normalVerser.getSecond() + tanForce * normalVerser.getFirst();
@@ -148,34 +158,36 @@ public class Particle {
         return force;
     }
 
-    private double tangentialForce(double rVx, double rVy, DoublePair normalVerser, double overlap) {
-        double relativeVt = -rVx * normalVerser.getSecond() + rVy * normalVerser.getFirst();
+    private double tangentialForce(Particle other, DoublePair normalVerser, double overlap, DoublePair firstPoint, DoublePair secondPoint) {
+        DoublePair relativeSpeed = getRelativeVelocity(other, firstPoint, secondPoint);
+        double relativeVt = -relativeSpeed.getFirst() * normalVerser.getSecond() +
+                relativeSpeed.getSecond() * normalVerser.getFirst();
         return -Constants.KT * overlap * relativeVt;
     }
 
-    private double tangentialForce(Particle other, DoublePair normalVerser, double overlap, DoublePair collisionCenter) {
-        DoublePair relativeSpeed = getRelativeVelocity(other, collisionCenter);
-        return tangentialForce(relativeSpeed.getFirst(), relativeSpeed.getSecond(), normalVerser, overlap);
-    }
+    private DoublePair getRelativeVelocity(Particle other, DoublePair firstPoint, DoublePair secondPoint) {
+        DoublePair viAtPoint = velocityAtPoint(firstPoint); //!isOther ? vertex : closestPoint
+        DoublePair vjAtPoint = other.velocityAtPoint(secondPoint); //isOther ? closestPoint : vertex
 
-    //CHECK
-    private DoublePair getRelativeVelocity(Particle other, DoublePair point) {
-        DoublePair v1AtPoint = velocityAtPoint(point);
-        DoublePair v2AtPoint = other.velocityAtPoint(point);
-
-        return v1AtPoint.minus(v2AtPoint);
+        return viAtPoint.minus(vjAtPoint);
     }
 
     //CHECK
     private DoublePair velocityAtPoint(DoublePair point) {
         DoublePair distance = point.minus(next[R.POS]);
-        DoublePair distanceVerser = distance.asVerser();
         double dist = distance.module();
+        if (dist == 0)
+            return predV;
+
+        DoublePair distanceVerser = distance.asVerser();
 
         double linearSpeed = predV.getThird() * dist;
+        DoublePair rotSpeed = new DoublePair(
+                -distanceVerser.getSecond() * linearSpeed,
+                distanceVerser.getFirst() * linearSpeed
+        );
 
-        return new DoublePair(predV.getFirst() - linearSpeed * distanceVerser.getSecond(),
-                predV.getSecond() + linearSpeed * distanceVerser.getFirst());
+        return rotSpeed.plus(predV);
     }
 
     public void addNeighbour(Particle neighbour) {
@@ -189,7 +201,7 @@ public class Particle {
     public double getMomentOfInertia() {
         // Calculate mass for rectangle and circle section
         double circleArea = Math.PI * radius * radius;
-        double rectArea =  length * 2 * radius;
+        double rectArea = length * 2 * radius;
         double rectMassPercent = rectArea / (circleArea + rectArea);
 
         // Moment of inertia for rectangle shaped part

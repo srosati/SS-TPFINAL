@@ -21,6 +21,8 @@ public class Space {
     private final int gridM;
     private final int gridN;
 
+    private final Particle leftWall = new Pa
+
     public Space(List<Particle> particles) {
         this.particleList = particles;
 

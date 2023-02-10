@@ -1,5 +1,7 @@
 package main.java.ar.edu.itba.ss.models;
 
+import java.util.Objects;
+
 public class DoublePair {
     private double first;
     private double second;
@@ -53,5 +55,18 @@ public class DoublePair {
 
     public void setSecond(double second) {
         this.second = second;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        DoublePair that = (DoublePair) o;
+        return Double.compare(that.first, first) == 0 && Double.compare(that.second, second) == 0;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(first, second);
     }
 }
