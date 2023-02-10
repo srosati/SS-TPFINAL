@@ -10,7 +10,7 @@ public class Constants {
     public static final double MIN_LENGTH = 0.9;
     public static final double MAX_LENGTH = 1.1;
     public static final double MASS = 1;
-    public static final int PARTICLE_AMOUNT = 5;
+    public static final int PARTICLE_AMOUNT = 20;
     public static final double SIMULATION_TIME = 100;
     public static final double KN = 250;
     public static final double KT = 2 * KN;

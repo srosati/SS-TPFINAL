@@ -24,6 +24,7 @@ public class Main {
 
         boolean generate = Boolean.parseBoolean(args[0]);
         Space.SLIT_SIZE = Double.parseDouble(args[1]);
+        Space.calculateWallDimensions();
 
         List<Particle> particles;
         if (generate) {

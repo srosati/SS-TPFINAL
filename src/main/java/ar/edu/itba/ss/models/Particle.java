@@ -113,10 +113,6 @@ public class Particle {
             totForce = totForce.plus(force);
         }
 
-        if (otherVertices[0].equals(otherVertices[1])) {
-            return totForce;
-        }
-
         for (DoublePair otherVertex : otherVertices) {
             DoubleTriad force = getForceBetween(otherVertex, vertices, other, true);
             totForce = totForce.plus(force);
