@@ -9,22 +9,23 @@ with open("../outFiles/out.txt", "r") as out_file:
             if len(line.split(" ")) <= 2:
                 ovito_file.write(line)
             else:
-                [id, x, y, w, r, l] = line.split(' ')
+                [particle_id, x, y, w, r, l] = line.split(' ')
                 w1 = math.cos(math.pi/4)
                 x1 = math.sin(math.pi/4)
                 y1 = z1 = 0
 
                 w2 = math.cos(float(w)/2)
-                x2 = 0
+                x2 = 0.0
                 y2 = -math.sin(float(w)/2)
-                z2 = 0
+                z2 = 0.0
 
                 quart_w = w1*w2 - x1*x2 - y1*y2 - z1*z2
                 quart_x = w1*x2 + x1*w2 + y1*z2 - z1*y2
                 quart_y = w1*y2 - x1*z2 + y1*w2 + z1*x2
                 quart_z = w1*z2 + x1*y2 - y1*x2 + z1*w2
 
-                ovito_file.write("{} {} {} {} {} {} {} {} {}\n".format(id, x, y, r, float(l), quart_w, quart_x, quart_y, quart_z))
+                ovito_file.write("{} {} {} {} {} {} {} {} {}\n".format(particle_id, x, y, r, float(l), quart_w,
+                                                                       quart_x, quart_y, quart_z))
             line = out_file.readline()
             
     ovito_file.close()
@@ -38,7 +39,7 @@ curr_id = 501
 max_iter = 100
 with open('../outFiles/walls.txt', 'w') as wall_file:
     for i in range(0, max_iter):
-        wall_file.write(str(2 * (width + height) - slit) + "\n")
+        wall_file.write(str(int(2 * (width + height) - slit)) + "\n")
         wall_file.write("position\n")
         # Horizontal walls
         for x in range(0, width):

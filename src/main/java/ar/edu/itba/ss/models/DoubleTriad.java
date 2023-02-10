@@ -8,9 +8,15 @@ public class DoubleTriad extends DoublePair {
         this.third = third;
     }
 
+    public DoubleTriad plus(DoubleTriad other) {
+        return new DoubleTriad(getFirst() + other.getFirst(), getSecond() + other.getSecond(), third + other.getThird());
+    }
+
     public double getThird() {
         return third;
     }
+
+
 
     public void setThird(double third) {
         this.third = third;

@@ -25,8 +25,17 @@ public class DoublePair {
         return new DoublePair(first - other.getFirst(), second - other.getSecond());
     }
 
+    public DoublePair times(double scalar) {
+        return new DoublePair(first * scalar, second * scalar);
+    }
+
     public double module() {
         return Math.sqrt(Math.pow(first, 2) + Math.pow(second, 2));
+    }
+
+    public double crossProduct(DoublePair other) {
+        // (x1, y1, 0) x (x2, y2, 0) = (0, 0, x1y2 - x2y1)
+        return first * other.getSecond() - second * other.getFirst();
     }
 
     public DoublePair versor() {

@@ -74,22 +74,24 @@ public class Particle {
     }
 
     public DoubleTriad calculateForces() {
-        double fx = 0;
-        double fy = mass * (Constants.DESIRED_VELOCITY - predV.getSecond()) / Constants.PROP_FACTOR;
-        double fw = 0;
+        DoubleTriad totForce = new DoubleTriad(0, mass * (Constants.DESIRED_VELOCITY - predV.getSecond()) / Constants.PROP_FACTOR, 0);
 
         if (Double.isNaN(predV.getSecond())) {
             System.out.println("NaN");
         }
 
         for (Particle neighbour : neighbours) {
-            DoubleTriad forces = getForcesWith(neighbour);
-            fx += forces.getFirst();
-            fy += forces.getSecond();
-            fw += forces.getThird();
+            DoubleTriad force = getForcesWith(neighbour);
+            totForce = totForce.plus(force);
+
+            // Me podria guardar de alguna forma este calculo para el choque inverso
+            // Fij = -Fji
+            // Tarda mucho asi como esta
+//            DoubleTriad otherForce = neighbour.getForcesWith(this);
+//            System.out.printf("(%f, %f),  (%f, %f),  (%f, %f)\n", force.getFirst(), otherForce.getFirst(), force.getSecond(), otherForce.getSecond(), force.getThird(), otherForce.getThird());
         }
 
-        return new DoubleTriad(fx, fy, fw);
+        return totForce;
     }
 
     private DoublePair[] getVertices() {
@@ -105,82 +107,45 @@ public class Particle {
         DoublePair[] vertices = getVertices();
         DoublePair[] otherVertices = other.getVertices();
 
-        double fx = 0;
-        double fy = 0;
-        double torque = 0;
+        DoubleTriad totForce = new DoubleTriad(0, 0, 0);
         for (DoublePair vertex: vertices) {
-            DoubleTriad force = getForceBetween(vertex, otherVertices, other);
-            fx += force.getFirst();
-            fy += force.getSecond();
-            torque += force.getThird();
+            DoubleTriad force = getForceBetween(vertex, otherVertices, other, false);
+            totForce = totForce.plus(force);
         }
 
-        for (DoublePair vertex: otherVertices) {
-            DoubleTriad force = getForceBetween(vertex, vertices, other);
-            fx += force.getFirst();
-            fy += force.getSecond();
-            torque += force.getThird();
+        for (DoublePair otherVertex: otherVertices) {
+            DoubleTriad force = getForceBetween(otherVertex, vertices, other, true);
+            totForce = totForce.plus(force);
         }
 
-        return new DoubleTriad(fx, fy, torque);
+        return totForce;
     }
 
-    private DoubleTriad getForceBetween(DoublePair vertex, DoublePair[] edge, Particle other) {
+    private DoubleTriad getForceBetween(DoublePair vertex, DoublePair[] edge, Particle other, boolean isOther) {
         DoublePair closestPoint = MathUtils.closestPointOnSegment(edge[0], edge[1], vertex);
         double overlap = radius + other.radius - vertex.distanceTo(closestPoint);
         if (overlap <= 0)
             return new DoubleTriad(0, 0, 0);
 
-        double normalForce = Constants.KN * overlap;
-        DoublePair overlapCenter = new DoublePair(
-                (vertex.getFirst() + closestPoint.getFirst()) / 2,
-                (vertex.getSecond() + closestPoint.getSecond()) / 2
-        );
+        DoublePair normalVec = isOther ? vertex.minus(closestPoint) : closestPoint.minus(vertex);
+        DoublePair normalVerser = normalVec.versor();
 
-        DoublePair distanceToCenter = next[R.POS].minus(overlapCenter);
+        DoublePair overlapCenter = vertex.plus(closestPoint).times(0.5);
 
-//        DoublePair distanceToCenter = overlapCenter.minus(next[R.POS]);
-        DoublePair normalVerser = distanceToCenter.versor(); // CHECK: Actual normal verser?
-
+        double normalForce = -Constants.KN * overlap;
         double tanForce = tangentialForce(other, normalVerser, overlap, overlapCenter);
+
         double fx = normalForce * normalVerser.getFirst() - tanForce * normalVerser.getSecond();
         double fy = normalForce * normalVerser.getSecond() + tanForce * normalVerser.getFirst();
 
-        double distModule = distanceToCenter.module();
-        double forceModule = Math.sqrt(Math.pow(fx, 2) + Math.pow(fy, 2));
-        double angle = Math.acos((fx * distanceToCenter.getFirst() + fy * distanceToCenter.getSecond()) /
-                (distModule * forceModule));
+        DoubleTriad force = new DoubleTriad(fx, fy, 0);
+        DoublePair distanceToCenter = overlapCenter.minus(next[R.POS]);
 
-        double torque = distModule * forceModule * Math.sin(angle);
-        return new DoubleTriad(fx, fy, 0);
+        double torque = distanceToCenter.crossProduct(force);
+//        System.out.println("Torque: " + torque);
+        force.setThird(torque);
+        return force;
     }
-
-    private DoublePair getRelativeVelocity(Particle other, DoublePair overlapCenter) {
-        DoublePair v1AtOverlap = velocityAtPoint(overlapCenter);
-        DoublePair v2AtOverlap = other.velocityAtPoint(overlapCenter);
-
-        return v1AtOverlap.minus(v2AtOverlap);
-    }
-
-    private DoublePair velocityAtPoint(DoublePair collisionCenter) {
-        DoublePair distance = next[R.POS].manDistanceTo(collisionCenter);
-        double dist = distance.module();
-        distance = distance.versor();
-        double vx = -distance.getSecond();
-        double vy = distance.getFirst();
-        if (predV.getThird() < 0) {
-            vx = distance.getSecond();
-            vy = -distance.getFirst();
-        }
-
-        vx *= predV.getThird() * dist;
-        vy *= predV.getThird() * dist;
-        vx += predV.getFirst();
-        vy += predV.getSecond();
-
-        return new DoublePair(vx, vy);
-    }
-
     private double tangentialForce(double rVx, double rVy, DoublePair normalVerser, double overlap) {
         double relativeVt = -rVx * normalVerser.getSecond() + rVy * normalVerser.getFirst();
         return -Constants.KT * overlap * relativeVt;
@@ -189,6 +154,23 @@ public class Particle {
     private double tangentialForce(Particle other, DoublePair normalVerser, double overlap, DoublePair collisionCenter) {
         DoublePair relativeSpeed = getRelativeVelocity(other, collisionCenter);
         return tangentialForce(relativeSpeed.getFirst(), relativeSpeed.getSecond(), normalVerser, overlap);
+    }
+
+    private DoublePair getRelativeVelocity(Particle other, DoublePair point) {
+        DoublePair v1AtPoint = velocityAtPoint(point);
+        DoublePair v2AtPoint = other.velocityAtPoint(point);
+
+        return v1AtPoint.minus(v2AtPoint);
+    }
+
+    private DoublePair velocityAtPoint(DoublePair collisionCenter) {
+        DoublePair distance = collisionCenter.minus(next[R.POS]);
+        double dist = distance.module();
+
+        double linearSpeed = predV.getThird() * dist;
+
+        return new DoublePair(predV.getFirst() - linearSpeed * distance.getSecond() / dist,
+                predV.getSecond() + linearSpeed * distance.getFirst() / dist);
     }
 
     public void addNeighbour(Particle neighbour) {
@@ -202,7 +184,7 @@ public class Particle {
     public double getMomentOfInertia() {
         // Calculate mass for rectangle and circle section
         double circleArea = Math.PI * radius * radius;
-        double rectArea = 2 * length * radius;
+        double rectArea =  length * 2 * radius;
         double rectMassPercent = rectArea / (circleArea + rectArea);
 
         // Moment of inertia for rectangle shaped part
