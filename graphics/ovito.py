@@ -3,7 +3,7 @@ print("Generating ovito file...")
 with open("../outFiles/out.txt", "r") as out_file:
     with open("../outFiles/ovito.txt", "w") as ovito_file:
         line = out_file.readline()
-        slit = float(line)
+        [slit, width, height] = line.split(' ')
         line = out_file.readline()
         while line:
             if len(line.split(" ")) <= 2:
@@ -27,14 +27,17 @@ with open("../outFiles/out.txt", "r") as out_file:
                 ovito_file.write("{} {} {} {} {} {} {} {} {}\n".format(particle_id, x, y, r, float(l), quart_w,
                                                                        quart_x, quart_y, quart_z))
             line = out_file.readline()
-            
+
     ovito_file.close()
 out_file.close()
 
 print("Generating walls...")
-print("Slit size: " + str(slit))
-width = 20
-height = 70
+slit = float(slit)
+width = int(float(width))
+height = int(float(height))
+# print("Slit size: " + str(slit))
+# width = 20
+# height = 70
 curr_id = 501
 max_iter = 100
 with open('../outFiles/walls.txt', 'w') as wall_file:

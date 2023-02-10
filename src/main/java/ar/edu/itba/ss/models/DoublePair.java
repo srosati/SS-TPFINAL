@@ -12,11 +12,7 @@ public class DoublePair {
     public double distanceTo(DoublePair other) {
         return Math.sqrt(Math.pow(other.getFirst() - first, 2) + Math.pow(other.getSecond() - second, 2));
     }
-
-    public DoublePair manDistanceTo(DoublePair other) {
-        return other.minus(this);
-    }
-
+    
     public DoublePair plus(DoublePair other) {
         return new DoublePair(first + other.getFirst(), second + other.getSecond());
     }
@@ -38,7 +34,7 @@ public class DoublePair {
         return first * other.getSecond() - second * other.getFirst();
     }
 
-    public DoublePair versor() {
+    public DoublePair asVerser() {
         double norm = module();
         return new DoublePair(first / norm, second / norm);
     }

@@ -128,9 +128,9 @@ public class Particle {
             return new DoubleTriad(0, 0, 0);
 
         DoublePair normalVec = isOther ? vertex.minus(closestPoint) : closestPoint.minus(vertex);
-        DoublePair normalVerser = normalVec.versor();
+        DoublePair normalVerser = normalVec.asVerser();
 
-        DoublePair overlapCenter = vertex.plus(closestPoint).times(0.5);
+        DoublePair overlapCenter = vertex.plus(normalVerser.times((radius + other.radius) / 2).times(isOther ? -1 : 1));
 
         double normalForce = -Constants.KN * overlap;
         double tanForce = tangentialForce(other, normalVerser, overlap, overlapCenter);
@@ -141,11 +141,13 @@ public class Particle {
         DoubleTriad force = new DoubleTriad(fx, fy, 0);
         DoublePair distanceToCenter = overlapCenter.minus(next[R.POS]);
 
+        // (x1, y1, 0) x (x2, y2, 0) = (0, 0, x1y2 - x2y1)
         double torque = distanceToCenter.crossProduct(force);
 //        System.out.println("Torque: " + torque);
         force.setThird(torque);
         return force;
     }
+
     private double tangentialForce(double rVx, double rVy, DoublePair normalVerser, double overlap) {
         double relativeVt = -rVx * normalVerser.getSecond() + rVy * normalVerser.getFirst();
         return -Constants.KT * overlap * relativeVt;
@@ -156,6 +158,7 @@ public class Particle {
         return tangentialForce(relativeSpeed.getFirst(), relativeSpeed.getSecond(), normalVerser, overlap);
     }
 
+    //CHECK
     private DoublePair getRelativeVelocity(Particle other, DoublePair point) {
         DoublePair v1AtPoint = velocityAtPoint(point);
         DoublePair v2AtPoint = other.velocityAtPoint(point);
@@ -163,14 +166,16 @@ public class Particle {
         return v1AtPoint.minus(v2AtPoint);
     }
 
-    private DoublePair velocityAtPoint(DoublePair collisionCenter) {
-        DoublePair distance = collisionCenter.minus(next[R.POS]);
+    //CHECK
+    private DoublePair velocityAtPoint(DoublePair point) {
+        DoublePair distance = point.minus(next[R.POS]);
+        DoublePair distanceVerser = distance.asVerser();
         double dist = distance.module();
 
         double linearSpeed = predV.getThird() * dist;
 
-        return new DoublePair(predV.getFirst() - linearSpeed * distance.getSecond() / dist,
-                predV.getSecond() + linearSpeed * distance.getFirst() / dist);
+        return new DoublePair(predV.getFirst() - linearSpeed * distanceVerser.getSecond(),
+                predV.getSecond() + linearSpeed * distanceVerser.getFirst());
     }
 
     public void addNeighbour(Particle neighbour) {

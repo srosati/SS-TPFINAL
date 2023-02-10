@@ -41,7 +41,8 @@ public class Main {
             particles.forEach(Particle::initRs);
             iter++;
 
-            outFile.write(Space.SLIT_SIZE + "\n");
+//            outFile.write(Space.SLIT_SIZE + "\n");
+            outFile.write(String.format("%f %f %f\n", Space.SLIT_SIZE, Constants.WIDTH, Constants.LENGTH));
             System.out.println("Starting simulation...");
 
             while (Double.compare(elapsed, Constants.SIMULATION_TIME) < 0) {
