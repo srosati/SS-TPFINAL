@@ -197,24 +197,25 @@ public class Space {
 
             double dy = Math.abs(closestPoints[0].getSecond() - closestPoints[1].getSecond());
 
+
             if (Double.compare(r, dy) >= 0) {
                 double dx = (l/2) * Math.abs(Math.cos(w)) + r;
                 if (((x <= BOTTOM_WALL_LENGTH ||
                         (x >= (Constants.WIDTH + Space.SLIT_SIZE) / 2)))) {
-                    double wallX = LEFT_BOTTOM_WALL_X - r/2;
-                    if (x >= TOP_WALL_X)
-                        wallX = RIGHT_BOTTOM_WALL_X + r/2;
+                    double wallX = LEFT_BOTTOM_WALL_X;
+                    if (x >= TOP_WALL_X )
+                        wallX = RIGHT_BOTTOM_WALL_X;
                     // Choque vertical con la pared
-                    DoubleTriad position = new DoubleTriad(wallX, -r, 0);
-                    particle.addNeighbour(getWallParticle(position, BOTTOM_WALL_LENGTH - r, r));
+                    DoubleTriad position = new DoubleTriad(wallX, -r, 0); //particula de la pared un radio abajo para que la colision se produzca realmente en la pared
+                    particle.addNeighbour(getWallParticle(position, BOTTOM_WALL_LENGTH - 2*r, r));
                 } else if ((x - dx <= BOTTOM_WALL_LENGTH)) {
                     // Borde izquierdo slit
-                    DoubleTriad position = new DoubleTriad(LEFT_BOTTOM_WALL_X - r/2, 0, 0);
-                    particle.addNeighbour(getWallParticle(position, BOTTOM_WALL_LENGTH - r, r));
+                    DoubleTriad position = new DoubleTriad(LEFT_BOTTOM_WALL_X, 0, 0);
+                    particle.addNeighbour(getWallParticle(position, BOTTOM_WALL_LENGTH - 2*r, r));
                 } else if (x + dx >= (Constants.WIDTH + Space.SLIT_SIZE) / 2) {
                     // Borde derecho slit
-                    DoubleTriad position = new DoubleTriad(RIGHT_BOTTOM_WALL_X + r/2, 0, 0);
-                    particle.addNeighbour(getWallParticle(position, BOTTOM_WALL_LENGTH - r, r));
+                    DoubleTriad position = new DoubleTriad(RIGHT_BOTTOM_WALL_X, 0, 0);
+                    particle.addNeighbour(getWallParticle(position, BOTTOM_WALL_LENGTH - 2*r, r));
                 }
             }
         }

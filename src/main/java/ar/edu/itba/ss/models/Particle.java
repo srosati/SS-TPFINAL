@@ -157,6 +157,8 @@ public class Particle {
             tanForce = tangentialForce(other, normalVerser, overlap, closestPoint, vertex);
         }
 
+
+
         double fx = normalForce * normalVerser.getFirst() - tanForce * normalVerser.getSecond();
         double fy = normalForce * normalVerser.getSecond() + tanForce * normalVerser.getFirst();
 
@@ -211,21 +213,7 @@ public class Particle {
     }
 
     public void calculateNewSize(double elapsed) {
-//        this.nextLength = INITIAL_LENGTH + 0.5 * Math.sin(this.lag + elapsed * Constants.ANGULAR_W);
-//
-//        //r_1 = r_0 - (A - 2 * l * r_0 - π * r_0^2) / (2 * l + 2 * π * r_0)
-//        double prevRadius = radius;
-//        //To calculate the new radius, we use the Newton-Raphson method because it is a non-linear equation
-//        double nextRadius = prevRadius - getNewtonRaphsonR(prevRadius, length) / getNewtownRaphsonDr(prevRadius, length);
-//
-//        //We iterate until the difference between the previous and the next radius is less than 0.0001
-//        while (Math.abs(nextRadius - prevRadius) > 0.0001) {
-//            prevRadius = nextRadius;
-//            nextRadius = prevRadius - getNewtonRaphsonR(prevRadius, length) / getNewtownRaphsonDr(prevRadius, length);
-//        }
-//        this.nextRadius = nextRadius;
-
-        this.nextRadius = INITIAL_RADIUS + 0.1 * Math.sin(this.lag + elapsed * Constants.ANGULAR_W);
+        this.nextRadius = INITIAL_RADIUS + Constants.RADIUS_AMPLITUDE * Math.sin(this.lag + elapsed * Constants.ANGULAR_W);
         this.nextLength = (area - Math.PI * Math.pow(nextRadius, 2)) / (2 * nextRadius);
     }
 
@@ -233,14 +221,6 @@ public class Particle {
         radius = nextRadius;
         length = nextLength;
     }
-
-//    private double getNewtonRaphsonR(double prevRadius, double length) {
-//        return (area - Math.PI * prevRadius * prevRadius) / (2 * length) - prevRadius;
-//    }
-//
-//    private double getNewtownRaphsonDr(double prevRadius, double length) {
-//        return -2 * Math.PI * prevRadius / (2 * length) - 1;
-//    }
 
     public double getMomentOfInertia() {
         // Calculate mass for rectangle and circle section
