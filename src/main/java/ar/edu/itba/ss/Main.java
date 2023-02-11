@@ -6,28 +6,30 @@ import main.java.ar.edu.itba.ss.models.Space;
 import main.java.ar.edu.itba.ss.utils.Constants;
 import main.java.ar.edu.itba.ss.utils.ParticleGenerator;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 public class Main {
+
+    public static boolean hasToGenerate = true;
+
     public static void main(String[] args) {
         long startTime = System.currentTimeMillis();
 
-        if (args.length != 2) {
-            System.out.println("Usage: java -jar SS-TPFINAL.jar <generate> <slit_size>");
+        if (args.length != 1) {
+            System.out.println("Usage: java -jar SS-TPFINAL.jar <config_file>");
             System.exit(1);
         }
 
-        boolean generate = Boolean.parseBoolean(args[0]);
-        Space.SLIT_SIZE = Double.parseDouble(args[1]);
+        configFileReader(args[0]);
         Space.calculateWallDimensions();
 
         List<Particle> particles;
-        if (generate) {
+        if (hasToGenerate) {
             particles = ParticleGenerator.generate("./outFiles/input.txt");
         } else {
             particles = ParticleGenerator.read("./outFiles/input.txt");
@@ -42,7 +44,6 @@ public class Main {
             particles.forEach(Particle::initRs);
             iter++;
 
-//            outFile.write(Space.SLIT_SIZE + "\n");
             outFile.write(String.format("%f %f %f\n", Space.SLIT_SIZE, Constants.WIDTH, Constants.LENGTH));
             System.out.println("Starting simulation...");
 
@@ -88,5 +89,27 @@ public class Main {
             System.out.println(e.getMessage());
             System.exit(1);
         }
+    }
+
+    public static void configFileReader(String file) {
+
+        File configFile = new File(file);
+        try (Scanner configReader = new Scanner(configFile)) {
+            while (configReader.hasNext()) {
+                String[] line = configReader.nextLine().split(" ");
+                switch (line[0].toLowerCase()) {
+                    case "generate" -> hasToGenerate = Boolean.parseBoolean(line[1]);
+                    case "slit_size" -> Space.SLIT_SIZE = Double.parseDouble(line[1]);
+                    case "particle_amount" -> Constants.PARTICLE_AMOUNT = Integer.parseInt(line[1]);
+                    case "tao" -> Constants.PROP_FACTOR = Double.parseDouble(line[1]);
+                    case "oscillation_w" -> Constants.ANGULAR_W = Double.parseDouble(line[1]);
+                }
+            }
+        } catch (NoSuchElementException | IllegalArgumentException | FileNotFoundException e) {
+            System.out.println("Error parsing config file. Will use default values");
+//            System.out.println(e.getMessage());
+//            System.exit(1);
+        }
+
     }
 }
