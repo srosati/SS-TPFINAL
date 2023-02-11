@@ -178,9 +178,6 @@ public class Space {
         Space.BOTTOM_WALL_LENGTH = (Constants.WIDTH - Space.SLIT_SIZE) / 2;
         Space.LEFT_BOTTOM_WALL_X = Space.BOTTOM_WALL_LENGTH / 2;
         Space.RIGHT_BOTTOM_WALL_X = Constants.WIDTH - Space.LEFT_BOTTOM_WALL_X;
-
-//        System.out.printf("%f %f %f\n", Space.BOTTOM_WALL_LENGTH, Space.LEFT_BOTTOM_WALL_X, Space.RIGHT_BOTTOM_WALL_X);
-
         Space.TOP_WALL_X = Constants.WIDTH / 2;
         Space.SIDE_WALL_Y = Constants.LENGTH / 2;
     }

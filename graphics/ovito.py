@@ -12,11 +12,12 @@ with open("../outFiles/out.txt", "r") as out_file:
                 [particle_id, x, y, w, r, l] = line.split(' ')
                 w1 = math.cos(math.pi/4)
                 x1 = math.sin(math.pi/4)
-                y1 = z1 = 0
+                z1 = 0
+                y1 = 0
 
-                w2 = math.cos(float(w)/2)
+                w2 = math.cos((math.pi/2 - float(w))/2)
                 x2 = 0.0
-                y2 = -math.sin(float(w)/2)
+                y2 = -math.sin((math.pi/2 - float(w))/2)
                 z2 = 0.0
 
                 quart_w = w1*w2 - x1*x2 - y1*y2 - z1*z2
@@ -24,8 +25,8 @@ with open("../outFiles/out.txt", "r") as out_file:
                 quart_y = w1*y2 - x1*z2 + y1*w2 + z1*x2
                 quart_z = w1*z2 + x1*y2 - y1*x2 + z1*w2
 
-                ovito_file.write("{} {} {} {} {} {} {} {} {}\n".format(particle_id, x, y, r, float(l), quart_w,
-                                                                       quart_x, quart_y, quart_z))
+                ovito_file.write("{} {} {} {} {} {} {} {} {} {}\n".format(particle_id, x, y, r, float(l), quart_w,
+                                                                       quart_x, quart_y, quart_z, w))
             line = out_file.readline()
 
     ovito_file.close()

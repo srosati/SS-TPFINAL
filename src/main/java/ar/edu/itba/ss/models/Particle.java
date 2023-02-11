@@ -143,8 +143,11 @@ public class Particle {
         DoublePair normalVec = isOther ? vertex.minus(closestPoint) : closestPoint.minus(vertex);
         DoublePair normalVerser = normalVec.asVerser();
 
-        DoublePair overlapCenter = vertex.plus(normalVerser.times((nextRadius + other.nextRadius) / 2).times(isOther ? -1 : 1));
+//        DoublePair overlapCenter = vertex.plus(normalVerser.times((nextRadius + other.nextRadius) / 2).times(isOther ? -1 : 1));
 
+        DoublePair overlapCenter = (vertex.times(isOther ? other.radius : radius)
+                .plus(closestPoint.times(isOther ? radius : other.radius)))
+                .times(1 / (radius + other.radius));
         double normalForce = -Constants.KN * overlap;
 
         double tanForce;
