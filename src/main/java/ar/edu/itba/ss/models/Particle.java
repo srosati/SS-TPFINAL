@@ -13,30 +13,43 @@ public class Particle {
     private final int id;
     private double radius;
     private double length;
+    private double nextRadius;
+    private double nextLength;
     private final double mass;
+    private final double area;
+    private final double INITIAL_RADIUS;
+    private final double lag;
 
     private final Set<Particle> neighbours = new HashSet<>();
-
     private final DoubleTriad[] curr = new DoubleTriad[3];
     private final DoubleTriad[] prev = new DoubleTriad[3];
     private final DoubleTriad[] next = new DoubleTriad[3];
     private DoubleTriad predV;
 
-    public Particle(double radius, double length, DoubleTriad position) {
+    public Particle(double radius, double length, double lag, DoubleTriad position) {
         this.id = SEQ++;
         this.mass = Constants.MASS;
-        this.radius = radius;
-        this.length = length;
+        this.INITIAL_RADIUS = radius;
+        this.area = (length * 2 * radius) + (Math.PI * radius * radius);
+        this.lag = lag;
+        this.calculateNewSize(0);
+        this.radius = this.nextRadius;
+        this.length = this.nextLength;
         this.setCurr(R.POS, position);
         predV = new DoubleTriad(0.0, 0.0, 0.0);
     }
 
-    public Particle(int id, double radius, double length, DoubleTriad position) {
+    public Particle(int id, double radius, double length, double lag, DoubleTriad position) {
         this.id = id;
         SEQ++;
         this.mass = Constants.MASS;
-        this.radius = radius;
-        this.length = length;
+        this.INITIAL_RADIUS = radius;
+        this.area = (length * 2 * radius) + (Math.PI * radius * radius);
+        this.lag = lag;
+        this.calculateNewSize(0);
+        this.radius = this.nextRadius;
+        this.length = this.nextLength;
+        this.setCurr(R.POS, position);
         this.setCurr(R.POS, position);
         predV = new DoubleTriad(0.0, 0.0, 0.0);
     }
@@ -62,7 +75,7 @@ public class Particle {
     }
 
     public double distanceTo(Particle other) {
-        return MathUtils.minDistanceBetweenSegments(curr[R.POS], length, other.curr[R.POS], other.length);
+        return MathUtils.minDistanceBetweenSegments(curr[R.POS], length, other.curr[R.POS], other.length); //CHECK es next o current ?
     }
 
     public boolean isColliding(Particle other) {
@@ -70,14 +83,14 @@ public class Particle {
             return false;
 
         double distance = this.distanceTo(other);
-        return Double.compare(distance, radius + other.radius) <= 0;
+        return Double.compare(distance, nextRadius + other.nextRadius) <= 0;
     }
 
     public DoubleTriad calculateForces() {
         DoubleTriad totForce = new DoubleTriad(0, mass * (Constants.DESIRED_VELOCITY - predV.getSecond()) / Constants.PROP_FACTOR, 0);
 
         if (Double.isNaN(predV.getSecond())) {
-            System.out.println("NaN");
+//            System.out.println("NaN");
         }
 
         for (Particle neighbour : neighbours) {
@@ -95,8 +108,8 @@ public class Particle {
     }
 
     private DoublePair[] getVertices() {
-        double dx = (length / 2) * Math.cos(next[R.POS].getThird());
-        double dy = (length / 2) * Math.sin(next[R.POS].getThird());
+        double dx = (nextLength / 2) * Math.cos(next[R.POS].getThird());
+        double dy = (nextLength / 2) * Math.sin(next[R.POS].getThird());
         return new DoublePair[]{
                 new DoublePair(next[R.POS].getFirst() - dx, next[R.POS].getSecond() - dy),
                 new DoublePair(next[R.POS].getFirst() + dx, next[R.POS].getSecond() + dy)
@@ -123,14 +136,14 @@ public class Particle {
 
     private DoubleTriad getForceBetween(DoublePair vertex, DoublePair[] edge, Particle other, boolean isOther) {
         DoublePair closestPoint = MathUtils.closestPointOnSegment(edge[0], edge[1], vertex);
-        double overlap = radius + other.radius - vertex.distanceTo(closestPoint);
+        double overlap = nextRadius + other.nextRadius - vertex.distanceTo(closestPoint);
         if (overlap <= 0)
             return new DoubleTriad(0, 0, 0);
 
         DoublePair normalVec = isOther ? vertex.minus(closestPoint) : closestPoint.minus(vertex);
         DoublePair normalVerser = normalVec.asVerser();
 
-        DoublePair overlapCenter = vertex.plus(normalVerser.times((radius + other.radius) / 2).times(isOther ? -1 : 1));
+        DoublePair overlapCenter = vertex.plus(normalVerser.times((nextRadius + other.nextRadius) / 2).times(isOther ? -1 : 1));
 
         double normalForce = -Constants.KN * overlap;
 
@@ -194,21 +207,53 @@ public class Particle {
         neighbours.clear();
     }
 
+    public void calculateNewSize(double elapsed) {
+//        this.nextLength = INITIAL_LENGTH + 0.5 * Math.sin(this.lag + elapsed * Constants.ANGULAR_W);
+//
+//        //r_1 = r_0 - (A - 2 * l * r_0 - π * r_0^2) / (2 * l + 2 * π * r_0)
+//        double prevRadius = radius;
+//        //To calculate the new radius, we use the Newton-Raphson method because it is a non-linear equation
+//        double nextRadius = prevRadius - getNewtonRaphsonR(prevRadius, length) / getNewtownRaphsonDr(prevRadius, length);
+//
+//        //We iterate until the difference between the previous and the next radius is less than 0.0001
+//        while (Math.abs(nextRadius - prevRadius) > 0.0001) {
+//            prevRadius = nextRadius;
+//            nextRadius = prevRadius - getNewtonRaphsonR(prevRadius, length) / getNewtownRaphsonDr(prevRadius, length);
+//        }
+//        this.nextRadius = nextRadius;
+
+        this.nextRadius = INITIAL_RADIUS + 0.1 * Math.sin(this.lag + elapsed * Constants.ANGULAR_W);
+        this.nextLength = (area - Math.PI * Math.pow(nextRadius, 2)) / (2 * nextRadius);
+    }
+
+    public void updateSize() {
+        radius = nextRadius;
+        length = nextLength;
+    }
+
+//    private double getNewtonRaphsonR(double prevRadius, double length) {
+//        return (area - Math.PI * prevRadius * prevRadius) / (2 * length) - prevRadius;
+//    }
+//
+//    private double getNewtownRaphsonDr(double prevRadius, double length) {
+//        return -2 * Math.PI * prevRadius / (2 * length) - 1;
+//    }
+
     public double getMomentOfInertia() {
         // Calculate mass for rectangle and circle section
-        double circleArea = Math.PI * radius * radius;
-        double rectArea = length * 2 * radius;
+        double circleArea = Math.PI * nextRadius * nextRadius;
+        double rectArea = nextLength * 2 * nextRadius;
         double rectMassPercent = rectArea / (circleArea + rectArea);
 
         // Moment of inertia for rectangle shaped part
         // width is length, height is radius
         double rectMass = mass * rectMassPercent;
-        double rectMoment = rectMass * (length * length + 4 * radius * radius) / 12;
+        double rectMoment = rectMass * (nextLength * nextLength + 4 * nextRadius * nextRadius) / 12;
 
         // Moment of inertia for semicircles at each end
         // each semicircle is at length/2 from the center of mass
         double circleMass = mass * (1 - rectMassPercent);
-        double circleMoment = circleMass * (radius * radius / 2 + length * length / 4); // Teorema de Steiner
+        double circleMoment = circleMass * (nextRadius * nextRadius / 2 + nextLength * nextLength / 4); // Teorema de Steiner
 
         // Aditive moments of inertia
         return rectMoment + circleMoment;
@@ -236,6 +281,10 @@ public class Particle {
 
     public double getMass() {
         return mass;
+    }
+
+    public double getArea() {
+        return area;
     }
 
     public Set<Particle> getNeighbours() {
@@ -272,6 +321,26 @@ public class Particle {
 
     public DoubleTriad getPrev(int index) {
         return prev[index];
+    }
+
+    public double getNextRadius() {
+        return nextRadius;
+    }
+
+    public void setNextRadius(double nextRadius) {
+        this.nextRadius = nextRadius;
+    }
+
+    public double getNextLength() {
+        return nextLength;
+    }
+
+    public void setNextLength(double nextLength) {
+        this.nextLength = nextLength;
+    }
+
+    public double getLag() {
+        return lag;
     }
 
     @Override

@@ -49,7 +49,7 @@ public class Main {
             while (Double.compare(elapsed, Constants.SIMULATION_TIME) < 0) {
                 particles = space.getParticleList();
 
-                space.getNextRs();
+                space.getNextRs(elapsed);
 
 
                 if (iter % 20 == 0) {
@@ -66,6 +66,10 @@ public class Main {
                     }
                 }
 
+//                for (Particle p : particles) {
+//                    p.calculateNewSize(elapsed);
+////                    System.out.printf("A:%f; l:%f; r:%f\n", p.getArea(), p.getLength(), p.getRadius());
+//                }
 
                 int flow = space.reenterParticles();
                 flowFile.write(String.format(Locale.ROOT, "%f %d\n", elapsed, flow));

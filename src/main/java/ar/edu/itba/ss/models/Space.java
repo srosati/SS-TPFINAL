@@ -39,7 +39,7 @@ public class Space {
         this.cells = new Cell[gridM][gridN];
     }
 
-    public void getNextRs() {
+    public void getNextRs(double elapsed) {
         // First set nextR[0] and predict nextR[1] for each particle
         for (Particle particle : particleList) {
             DoubleTriad currPos = particle.getCurrent(R.POS);
@@ -66,7 +66,7 @@ public class Space {
                     prevAcc.getThird());
 
             particle.setPredV(new DoubleTriad(r1X, r1Y, r1w));
-
+            particle.calculateNewSize(elapsed);
         }
 
         calculateNeighbours();
@@ -94,7 +94,7 @@ public class Space {
             DoubleTriad force = p.calculateForces();
             p.setNextR(R.ACC, new DoubleTriad(force.getFirst() / p.getMass(),
                     force.getSecond() / p.getMass(), force.getThird() / p.getMomentOfInertia()));
-            //TODO: hace falta el moment of inertia? o ya es el torque calculado
+
         });
 
         particleList.forEach(p -> {
@@ -105,6 +105,8 @@ public class Space {
             p.setCurr(R.POS, p.getNext(R.POS));
             p.setCurr(R.VEL, p.getNext(R.VEL));
             p.setCurr(R.ACC, p.getNext(R.ACC));
+
+            p.updateSize();
         });
     }
 
@@ -177,7 +179,7 @@ public class Space {
         Space.LEFT_BOTTOM_WALL_X = Space.BOTTOM_WALL_LENGTH / 2;
         Space.RIGHT_BOTTOM_WALL_X = Constants.WIDTH - Space.LEFT_BOTTOM_WALL_X;
 
-        System.out.printf("%f %f %f\n", Space.BOTTOM_WALL_LENGTH, Space.LEFT_BOTTOM_WALL_X, Space.RIGHT_BOTTOM_WALL_X);
+//        System.out.printf("%f %f %f\n", Space.BOTTOM_WALL_LENGTH, Space.LEFT_BOTTOM_WALL_X, Space.RIGHT_BOTTOM_WALL_X);
 
         Space.TOP_WALL_X = Constants.WIDTH / 2;
         Space.SIDE_WALL_Y = Constants.LENGTH / 2;
@@ -187,8 +189,8 @@ public class Space {
         double x = particle.getNext(R.POS).getFirst();
         double y = particle.getNext(R.POS).getSecond();
         double w = particle.getNext(R.POS).getThird();
-        double r = particle.getRadius();
-        double l = particle.getLength();
+        double r = particle.getNextRadius();
+        double l = particle.getNextLength();
 
         // BOTTOM
         if (row == 0) {
@@ -199,22 +201,22 @@ public class Space {
             double dy = Math.abs(closestPoints[0].getSecond() - closestPoints[1].getSecond());
 
             if (Double.compare(r, dy) >= 0) {
-                double dx = (l/2) * Math.cos(w) + r;
+                double dx = (l/2) * Math.abs(Math.cos(w)) + r;
                 if (((x <= BOTTOM_WALL_LENGTH ||
-                        (x >= Constants.WIDTH / 2 + Space.SLIT_SIZE / 2)))) {
+                        (x >= (Constants.WIDTH + Space.SLIT_SIZE) / 2)))) {
                     double wallX = LEFT_BOTTOM_WALL_X - r/2;
-                    if (x >= Constants.WIDTH / 2)
+                    if (x >= TOP_WALL_X)
                         wallX = RIGHT_BOTTOM_WALL_X + r/2;
                     // Choque vertical con la pared
                     DoubleTriad position = new DoubleTriad(wallX, -r, 0);
                     particle.addNeighbour(getWallParticle(position, BOTTOM_WALL_LENGTH - r, r));
                 } else if ((x - dx <= BOTTOM_WALL_LENGTH)) {
                     // Borde izquierdo slit
-                    DoubleTriad position = new DoubleTriad(LEFT_BOTTOM_WALL_X - r/2, -r, 0);
+                    DoubleTriad position = new DoubleTriad(LEFT_BOTTOM_WALL_X - r/2, 0, 0);
                     particle.addNeighbour(getWallParticle(position, BOTTOM_WALL_LENGTH - r, r));
                 } else if (x + dx >= (Constants.WIDTH + Space.SLIT_SIZE) / 2) {
                     // Borde derecho slit
-                    DoubleTriad position = new DoubleTriad(RIGHT_BOTTOM_WALL_X + r/2, -r, 0);
+                    DoubleTriad position = new DoubleTriad(RIGHT_BOTTOM_WALL_X + r/2, 0, 0);
                     particle.addNeighbour(getWallParticle(position, BOTTOM_WALL_LENGTH - r, r));
                 }
             }
@@ -264,9 +266,11 @@ public class Space {
     }
 
     private Particle getWallParticle(DoubleTriad position, double length, double radius) {
-        Particle wall = new Particle(radius, length, position);
+        Particle wall = new Particle(radius, length,0, position);
         wall.setNextR(R.POS, position);
         wall.setNextR(R.VEL, new DoubleTriad(0, 0, 0));
+        wall.setNextLength(length);
+        wall.setNextRadius(radius);
         return wall;
     }
 

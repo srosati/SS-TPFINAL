@@ -15,8 +15,14 @@ public class ParticleGenerator {
             double newRadius = randomNum(Constants.MIN_RADIUS, Constants.MAX_RADIUS);
             double newLength = randomNum(Constants.MIN_LENGTH, Constants.MAX_LENGTH);
 
+            double area = (newLength * 2 * newRadius) + (Math.PI * newRadius * newRadius);
+
+            double lag = Math.random() * 2 * Math.PI;
+            newRadius = newRadius + 0.1 * Math.sin(lag);
+            newLength = (area - Math.PI * Math.pow(newRadius, 2)) / (2 * newRadius);
+
             DoubleTriad position = generateParticlePosition(particles, -1, newRadius, newLength, false);
-            Particle newParticle = new Particle(newRadius, newLength, position);
+            Particle newParticle = new Particle(newRadius, newLength, lag, position);
 
             particles.add(newParticle);
         }
@@ -24,9 +30,9 @@ public class ParticleGenerator {
         try (FileWriter writer = new FileWriter(staticFile)) {
             writer.write(Constants.PARTICLE_AMOUNT + "\n");
             for (Particle p : particles) {
-                writer.write(String.format(Locale.ROOT, "%d %f %f %f %f %f\n", p.getId(),
+                writer.write(String.format(Locale.ROOT, "%d %f %f %f %f %f %f\n", p.getId(),
                         p.getCurrent(R.POS).getFirst(), p.getCurrent(R.POS).getSecond(),
-                        p.getRadius(), p.getLength(), p.getCurrent(R.POS).getThird()));
+                        p.getRadius(), p.getLength(), p.getCurrent(R.POS).getThird(), p.getLag()));
             }
         } catch (
                 IOException e) {
@@ -54,8 +60,9 @@ public class ParticleGenerator {
                 double y = Double.parseDouble(line[2]);
                 double radius = Double.parseDouble(line[3]);
                 double length = Double.parseDouble(line[4]);
-                double w = Double.parseDouble(line[5]); //TODO: no esta generando el w
-                particleList.add(new Particle(id, radius, length, new DoubleTriad(x, y, w)));
+                double w = Double.parseDouble(line[5]);
+                double lag = Double.parseDouble(line[6]);
+                particleList.add(new Particle(id, radius, length,lag, new DoubleTriad(x, y, w)));
             }
         } catch (NoSuchElementException | IllegalArgumentException e) {
             System.out.println(e.getMessage());
