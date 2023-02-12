@@ -1,0 +1,5 @@
+generate true
+particle_amount 10
+slit_size 4
+oscillation_w 0.1
+tao 1
