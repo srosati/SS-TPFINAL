@@ -143,8 +143,6 @@ public class Particle {
         DoublePair normalVec = isOther ? vertex.minus(closestPoint) : closestPoint.minus(vertex);
         DoublePair normalVerser = normalVec.asVerser();
 
-//        DoublePair overlapCenter = vertex.plus(normalVerser.times((nextRadius + other.nextRadius) / 2).times(isOther ? -1 : 1));
-
         DoublePair overlapCenter = (vertex.times(isOther ? other.radius : radius)
                 .plus(closestPoint.times(isOther ? radius : other.radius)))
                 .times(1 / (radius + other.radius));
@@ -157,8 +155,6 @@ public class Particle {
             tanForce = tangentialForce(other, normalVerser, overlap, closestPoint, vertex);
         }
 
-
-
         double fx = normalForce * normalVerser.getFirst() - tanForce * normalVerser.getSecond();
         double fy = normalForce * normalVerser.getSecond() + tanForce * normalVerser.getFirst();
 
@@ -166,9 +162,7 @@ public class Particle {
         DoublePair distanceToCenter = overlapCenter.minus(next[R.POS]);
 
         // (x1, y1, 0) x (x2, y2, 0) = (0, 0, x1y2 - x2y1)
-        double torque = distanceToCenter.crossProduct(force);
-//        System.out.println("Torque: " + torque);
-        force.setThird(torque);
+        force.setThird(distanceToCenter.crossProduct(force));
         return force;
     }
 
@@ -186,7 +180,6 @@ public class Particle {
         return viAtPoint.minus(vjAtPoint);
     }
 
-    //CHECK
     private DoublePair velocityAtPoint(DoublePair point) {
         DoublePair distance = point.minus(next[R.POS]);
         double dist = distance.module();
@@ -236,10 +229,43 @@ public class Particle {
         // Moment of inertia for semicircles at each end
         // each semicircle is at length/2 from the center of mass
         double circleMass = mass * (1 - rectMassPercent);
-        double circleMoment = circleMass * (nextRadius * nextRadius / 2 + nextLength * nextLength / 4); // Teorema de Steiner
 
+        double circleMoment = circleMass * (Math.pow(nextRadius, 2) + Math.pow(nextLength, 2) / 2) / 2;
+
+//        System.out.printf("ours: %f, numeric: %f\n", rectMoment + circleMoment, numericGetMomentOfInertia());
         // Aditive moments of inertia
         return rectMoment + circleMoment;
+    }
+
+
+    //Integración numerica para el momento de inercia usando Monte Carlo
+    public double numericGetMomentOfInertia() {
+        double tot = 0;
+        double maxX = nextLength / 2 + nextRadius;
+        int count = 0;
+        for (int i = 0; i < 50000000; i++) {
+            double x = randomBetween(-maxX, maxX);
+            double y = randomBetween(-nextRadius, nextRadius);
+            if (!isWithin(x, y))
+                continue;
+
+            tot += x*x + y*y;
+            count++;
+        }
+
+        return tot / (count);
+    }
+
+    private double randomBetween(double min, double max) {
+        return min + Math.random() * (max - min);
+    }
+
+    private boolean isWithin(double x, double y) {
+        if (x <= nextLength/2 && x >= -nextLength/2)
+            return true;
+
+        double dx = Math.abs(x) - nextLength/2; // distance from center of circle
+        return Math.sqrt(dx*dx + y*y) <= nextRadius;
     }
 
     public int getId() {
