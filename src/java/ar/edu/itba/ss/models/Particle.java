@@ -1,8 +1,9 @@
-package main.java.ar.edu.itba.ss.models;
+package ar.edu.itba.ss.models;
 
-import main.java.ar.edu.itba.ss.utils.Constants;
-import main.java.ar.edu.itba.ss.utils.Integration;
-import main.java.ar.edu.itba.ss.utils.MathUtils;
+import ar.edu.itba.ss.utils.Constants;
+import ar.edu.itba.ss.utils.Integration;
+import ar.edu.itba.ss.utils.MathUtils;
+import ar.edu.itba.ss.utils.MomentOfInertiaCalculator;
 
 import java.util.HashSet;
 import java.util.Objects;
@@ -26,10 +27,10 @@ public class Particle {
     private final DoubleTriad[] next = new DoubleTriad[3];
     private DoubleTriad predV;
 
-    public Particle(double radius, double length, double lag, DoubleTriad position) {
+    public Particle(double radius, double length, double lag, DoubleTriad position, double initial_radius) {
         this.id = SEQ++;
         this.mass = Constants.MASS;
-        this.INITIAL_RADIUS = radius;
+        this.INITIAL_RADIUS = initial_radius;
         this.area = (length * 2 * radius) + (Math.PI * radius * radius);
         this.lag = lag;
         this.calculateNewSize(0);
@@ -54,6 +55,7 @@ public class Particle {
         predV = new DoubleTriad(0.0, 0.0, 0.0);
     }
 
+
     public void initRs() {
         curr[R.VEL] = new DoubleTriad(0.0, 0.0, 0.0);
         double acc = Constants.DESIRED_VELOCITY / Constants.PROP_FACTOR;
@@ -74,20 +76,30 @@ public class Particle {
         prev[R.ACC] = new DoubleTriad(0.0, acc, 0.0);
     }
 
-    public double distanceTo(Particle other) {
-        return MathUtils.minDistanceBetweenSegments(curr[R.POS], length, other.curr[R.POS], other.length); //CHECK es next o current ?
+    public double distanceTo(DoubleTriad other, double otherLength) {
+        return MathUtils.minDistanceBetweenSegments(curr[R.POS], length, other, otherLength); // TODO: CHECK es next o current ?
     }
 
     public boolean isColliding(Particle other) {
         if (this.equals(other))
             return false;
 
-        double distance = this.distanceTo(other);
-        return Double.compare(distance, nextRadius + other.nextRadius) <= 0;
+        double distance = this.distanceTo(other.curr[R.POS], other.length);
+        return Double.compare(distance, radius + other.radius) <= 0;
     }
 
+    public boolean isColliding(DoubleTriad otherPos, double otherR, double otherL) {
+        double distance = distanceTo(otherPos, otherL);
+        return Double.compare(distance, radius + otherR) <= 0; // TODO: Recontra check, aca uso next y arriba curr
+    }
+
+
+
     public DoubleTriad calculateForces() {
-        DoubleTriad totForce = new DoubleTriad(0, mass * (Constants.DESIRED_VELOCITY - predV.getSecond()) / Constants.PROP_FACTOR, 0);
+        DoubleTriad totForce = new DoubleTriad(
+                0,
+                mass * (Constants.DESIRED_VELOCITY - predV.getSecond()) / Constants.PROP_FACTOR,
+                0);
 
         if (Double.isNaN(predV.getSecond())) {
 //            System.out.println("NaN");
@@ -121,11 +133,13 @@ public class Particle {
         DoublePair[] otherVertices = other.getVertices();
 
         DoubleTriad totForce = new DoubleTriad(0, 0, 0);
+        // Por cada uno de mis vertices, me fijo en los lados del otro
         for (DoublePair vertex : vertices) {
             DoubleTriad force = getForceBetween(vertex, otherVertices, other, false);
             totForce = totForce.plus(force);
         }
 
+        // Por cada uno de mis lados, me fijo en los vertices del otro
         for (DoublePair otherVertex : otherVertices) {
             DoubleTriad force = getForceBetween(otherVertex, vertices, other, true);
             totForce = totForce.plus(force);
@@ -216,25 +230,27 @@ public class Particle {
     }
 
     public double getMomentOfInertia() {
-        // Calculate mass for rectangle and circle section
-        double circleArea = Math.PI * nextRadius * nextRadius;
-        double rectArea = nextLength * 2 * nextRadius;
-        double rectMassPercent = rectArea / (circleArea + rectArea);
+        return MomentOfInertiaCalculator.INTERPOLATION_FUNCTION.value(nextLength, nextRadius);
 
-        // Moment of inertia for rectangle shaped part
-        // width is length, height is radius
-        double rectMass = mass * rectMassPercent;
-        double rectMoment = rectMass * (nextLength * nextLength + 4 * nextRadius * nextRadius) / 12;
-
-        // Moment of inertia for semicircles at each end
-        // each semicircle is at length/2 from the center of mass
-        double circleMass = mass * (1 - rectMassPercent);
-
-        double circleMoment = circleMass * (Math.pow(nextRadius, 2) + Math.pow(nextLength, 2) / 2) / 2;
-
+//        // Calculate mass for rectangle and circle section
+//        double circleArea = Math.PI * nextRadius * nextRadius;
+//        double rectArea = nextLength * 2 * nextRadius;
+//        double rectMassPercent = rectArea / (circleArea + rectArea);
+//
+//        // Moment of inertia for rectangle shaped part
+//        // width is length, height is radius
+//        double rectMass = mass * rectMassPercent;
+//        double rectMoment = rectMass * (nextLength * nextLength + 4 * nextRadius * nextRadius) / 12;
+//
+//        // Moment of inertia for semicircles at each end
+//        // each semicircle is at length/2 from the center of mass
+//        double circleMass = mass * (1 - rectMassPercent);
+//
+//        double circleMoment = circleMass * (Math.pow(nextRadius, 2) + Math.pow(nextLength, 2) / 2) / 2;
+//
 //        System.out.printf("ours: %f, numeric: %f\n", rectMoment + circleMoment, numericGetMomentOfInertia());
-        // Aditive moments of inertia
-        return rectMoment + circleMoment;
+//        // Aditive moments of inertia
+//        return rectMoment + circleMoment;
     }
 
 
@@ -243,17 +259,24 @@ public class Particle {
         double tot = 0;
         double maxX = nextLength / 2 + nextRadius;
         int count = 0;
-        for (int i = 0; i < 50000000; i++) {
-            double x = randomBetween(-maxX, maxX);
-            double y = randomBetween(-nextRadius, nextRadius);
-            if (!isWithin(x, y))
-                continue;
+        for (double x = -maxX; x < maxX; x += 0.001) {
+            for (double y = -nextRadius; y < nextRadius; y += 0.001) {
+                if (!isWithin(x, y))
+                    continue;
 
-            tot += x*x + y*y;
-            count++;
+                tot += x*x + y*y;
+                count++;
+            }
+//            double x = randomBetween(-maxX, maxX);
+//            double y = randomBetween(-nextRadius, nextRadius);
+//            if (!isWithin(x, y))
+//                continue;
+//
+//            tot += x*x + y*y;
+//            count++;
         }
 
-        return tot / (count);
+        return mass * tot / (count);
     }
 
     private double randomBetween(double min, double max) {

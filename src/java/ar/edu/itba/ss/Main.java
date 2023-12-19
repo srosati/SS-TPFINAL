@@ -1,10 +1,10 @@
-package main.java.ar.edu.itba.ss;
+package ar.edu.itba.ss;
 
-import main.java.ar.edu.itba.ss.models.Particle;
-import main.java.ar.edu.itba.ss.models.R;
-import main.java.ar.edu.itba.ss.models.Space;
-import main.java.ar.edu.itba.ss.utils.Constants;
-import main.java.ar.edu.itba.ss.utils.ParticleGenerator;
+import ar.edu.itba.ss.models.Particle;
+import ar.edu.itba.ss.models.R;
+import ar.edu.itba.ss.models.Space;
+import ar.edu.itba.ss.utils.Constants;
+import ar.edu.itba.ss.utils.ParticleGenerator;
 
 import java.io.File;
 import java.io.FileNotFoundException;

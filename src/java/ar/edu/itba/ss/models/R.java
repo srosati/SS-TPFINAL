@@ -1,4 +1,4 @@
-package main.java.ar.edu.itba.ss.models;
+package ar.edu.itba.ss.models;
 
 public class R {
     public static final int POS = 0;

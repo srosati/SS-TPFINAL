@@ -1,7 +1,7 @@
-package main.java.ar.edu.itba.ss.utils;
+package ar.edu.itba.ss.utils;
 
-import main.java.ar.edu.itba.ss.models.DoublePair;
-import main.java.ar.edu.itba.ss.models.DoubleTriad;
+import ar.edu.itba.ss.models.DoublePair;
+import ar.edu.itba.ss.models.DoubleTriad;
 
 public class MathUtils {
     public static double minDistanceBetweenSegments(DoubleTriad pos1, double length1, DoubleTriad pos2, double length2) {
@@ -141,20 +141,22 @@ public class MathUtils {
         return closestPointsBetweenSegments(points[0], points[1], p1, p2);
     }
 
-    public static DoublePair closestPointOnSegment(DoublePair p1, DoublePair p2, DoublePair p3) {
-        double xDelta = p2.getFirst() - p1.getFirst();
-        double yDelta = p2.getSecond() - p1.getSecond();
+    public static DoublePair closestPointOnSegment(DoublePair segmentP1, 
+                                                   DoublePair segmentP2, 
+                                                   DoublePair otherPoint) {
+        double xDelta = segmentP2.getFirst() - segmentP1.getFirst();
+        double yDelta = segmentP2.getSecond() - segmentP1.getSecond();
         double d2 = xDelta * xDelta + yDelta * yDelta;
         if (d2 == 0)
-            return p1;
+            return segmentP1;
 
-        double u = ((p3.getFirst() - p1.getFirst()) * xDelta + (p3.getSecond() - p1.getSecond()) * yDelta) / d2;
+        double u = ((otherPoint.getFirst() - segmentP1.getFirst()) * xDelta + (otherPoint.getSecond() - segmentP1.getSecond()) * yDelta) / d2;
         if (u < 0)
-            return p1;
+            return segmentP1;
 
         if (u > 1)
-            return p2;
+            return segmentP2;
 
-        return new DoublePair(p1.getFirst() + u * xDelta, p1.getSecond() + u * yDelta);
+        return new DoublePair(segmentP1.getFirst() + u * xDelta, segmentP1.getSecond() + u * yDelta);
     }
 }

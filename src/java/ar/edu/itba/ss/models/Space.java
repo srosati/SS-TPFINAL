@@ -1,9 +1,9 @@
-package main.java.ar.edu.itba.ss.models;
+package ar.edu.itba.ss.models;
 
-import main.java.ar.edu.itba.ss.utils.Constants;
-import main.java.ar.edu.itba.ss.utils.Integration;
-import main.java.ar.edu.itba.ss.utils.MathUtils;
-import main.java.ar.edu.itba.ss.utils.ParticleGenerator;
+import ar.edu.itba.ss.utils.Constants;
+import ar.edu.itba.ss.utils.Integration;
+import ar.edu.itba.ss.utils.MathUtils;
+import ar.edu.itba.ss.utils.ParticleGenerator;
 
 import java.util.List;
 
@@ -188,6 +188,8 @@ public class Space {
         double w = particle.getNext(R.POS).getThird();
         double r = particle.getNextRadius();
         double l = particle.getNextLength();
+        double totR = r + Constants.WALL_RADIUS;
+
 
         // BOTTOM
         if (row == 0) {
@@ -198,25 +200,33 @@ public class Space {
             double dy = Math.abs(closestPoints[0].getSecond() - closestPoints[1].getSecond());
 
 
-            if (Double.compare(r, dy) >= 0) {
-                double dx = (l/2) * Math.abs(Math.cos(w)) + r;
-                if (((x <= BOTTOM_WALL_LENGTH ||
-                        (x >= (Constants.WIDTH + Space.SLIT_SIZE) / 2)))) {
-                    double wallX = LEFT_BOTTOM_WALL_X;
-                    if (x >= TOP_WALL_X )
-                        wallX = RIGHT_BOTTOM_WALL_X;
-                    // Choque vertical con la pared
-                    DoubleTriad position = new DoubleTriad(wallX, -r, 0); //particula de la pared un radio abajo para que la colision se produzca realmente en la pared
-                    particle.addNeighbour(getWallParticle(position, BOTTOM_WALL_LENGTH - 2*r, r));
-                } else if ((x - dx <= BOTTOM_WALL_LENGTH)) {
-                    // Borde izquierdo slit
-                    DoubleTriad position = new DoubleTriad(LEFT_BOTTOM_WALL_X, 0, 0);
-                    particle.addNeighbour(getWallParticle(position, BOTTOM_WALL_LENGTH - 2*r, r));
-                } else if (x + dx >= (Constants.WIDTH + Space.SLIT_SIZE) / 2) {
-                    // Borde derecho slit
-                    DoubleTriad position = new DoubleTriad(RIGHT_BOTTOM_WALL_X, 0, 0);
-                    particle.addNeighbour(getWallParticle(position, BOTTOM_WALL_LENGTH - 2*r, r));
-                }
+            if (Double.compare(totR, dy) >= 0) {
+                DoubleTriad position = new DoubleTriad(LEFT_BOTTOM_WALL_X, 0, 0);
+                particle.addNeighbour(getWallParticle(position, BOTTOM_WALL_LENGTH - 2*Constants.WALL_RADIUS));
+
+                position = new DoubleTriad(RIGHT_BOTTOM_WALL_X, 0, 0);
+                particle.addNeighbour(getWallParticle(position, BOTTOM_WALL_LENGTH - 2*Constants.WALL_RADIUS));
+//                DoubleTriad position = new DoubleTriad(Constants.WIDTH/2, 0, 0);
+//                particle.addNeighbour(getWallParticle(position, Constants.WIDTH));
+
+//                double dx = (l/2) * Math.abs(Math.cos(w)) + r;
+//                if (((x <= BOTTOM_WALL_LENGTH ||
+//                        (x >= (Constants.WIDTH + Space.SLIT_SIZE) / 2)))) {
+//                    double wallX = LEFT_BOTTOM_WALL_X;
+//                    if (x >= TOP_WALL_X )
+//                        wallX = RIGHT_BOTTOM_WALL_X;
+//                    // Choque vertical con la pared
+//                    DoubleTriad position = new DoubleTriad(wallX, -r, 0); //particula de la pared un radio abajo para que la colision se produzca realmente en la pared
+//                    particle.addNeighbour(getWallParticle(position, BOTTOM_WALL_LENGTH - 2*r));
+//                } else if ((x - dx <= BOTTOM_WALL_LENGTH)) {
+//                    // Borde izquierdo slit
+//                    DoubleTriad position = new DoubleTriad(LEFT_BOTTOM_WALL_X, 0, 0);
+//                    particle.addNeighbour(getWallParticle(position, BOTTOM_WALL_LENGTH - 2*r));
+//                } else if (x + dx >= (Constants.WIDTH + Space.SLIT_SIZE) / 2) {
+//                    // Borde derecho slit
+//                    DoubleTriad position = new DoubleTriad(RIGHT_BOTTOM_WALL_X, 0, 0);
+//                    particle.addNeighbour(getWallParticle(position, BOTTOM_WALL_LENGTH - 2*r));
+//                }
             }
         }
 
@@ -228,9 +238,9 @@ public class Space {
 
             double dY = Math.abs(closestPoints[0].getSecond() - closestPoints[1].getSecond());
 
-            if (Double.compare(r, dY) >= 0) {
-                DoubleTriad position = new DoubleTriad(TOP_WALL_X, Constants.LENGTH + r, 0);
-                particle.addNeighbour(getWallParticle(position, Constants.WIDTH, r));
+            if (Double.compare(totR, dY) >= 0) {
+                DoubleTriad position = new DoubleTriad(TOP_WALL_X, Constants.LENGTH, 0);
+                particle.addNeighbour(getWallParticle(position, Constants.WIDTH));
             }
         }
 
@@ -242,9 +252,9 @@ public class Space {
                         new DoublePair(0, 0), new DoublePair(0, Constants.LENGTH));
                 double dX = Math.abs(closestPoints[0].getFirst() - closestPoints[1].getFirst());
 
-                if (Double.compare(r, dX) >= 0) {
-                    DoubleTriad position = new DoubleTriad(-r, SIDE_WALL_Y, Math.PI / 2);
-                    particle.addNeighbour(getWallParticle(position, Constants.LENGTH, r));
+                if (Double.compare(totR, dX) >= 0) {
+                    DoubleTriad position = new DoubleTriad(0, SIDE_WALL_Y, Math.PI / 2);
+                    particle.addNeighbour(getWallParticle(position, Constants.LENGTH));
                 }
             }
 
@@ -255,20 +265,21 @@ public class Space {
                         new DoublePair(Constants.WIDTH, 0), new DoublePair(Constants.WIDTH, Constants.LENGTH));
                 double dX = Math.abs(closestPoints[0].getFirst() - closestPoints[1].getFirst());
 
-                if (Double.compare(r, dX) >= 0) {
-                    DoubleTriad position = new DoubleTriad(Constants.WIDTH + r, SIDE_WALL_Y, Math.PI / 2);
-                    particle.addNeighbour(getWallParticle(position, Constants.LENGTH, r));
+                if (Double.compare(totR, dX) >= 0) {
+                    DoubleTriad position = new DoubleTriad(Constants.WIDTH, SIDE_WALL_Y, Math.PI / 2);
+                    particle.addNeighbour(getWallParticle(position, Constants.LENGTH));
                 }
             }
         }
     }
 
-    private Particle getWallParticle(DoubleTriad position, double length, double radius) {
-        Particle wall = new Particle(radius, length,0, position);
+    private Particle getWallParticle(DoubleTriad position, double length) {
+        Particle wall = new Particle(Constants.WALL_RADIUS, length,0, position, Constants.WALL_RADIUS);
+
         wall.setNextR(R.POS, position);
         wall.setNextR(R.VEL, new DoubleTriad(0, 0, 0));
         wall.setNextLength(length);
-        wall.setNextRadius(radius);
+        wall.setNextRadius(Constants.WALL_RADIUS);
         return wall;
     }
 

@@ -1,4 +1,4 @@
-package main.java.ar.edu.itba.ss.models;
+package ar.edu.itba.ss.models;
 
 import java.util.Objects;
 
