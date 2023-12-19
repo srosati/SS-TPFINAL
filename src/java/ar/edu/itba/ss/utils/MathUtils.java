@@ -159,4 +159,12 @@ public class MathUtils {
 
         return new DoublePair(segmentP1.getFirst() + u * xDelta, segmentP1.getSecond() + u * yDelta);
     }
+
+    public static double getNewRadius(double elapsed, double initialRadius, double lag) {
+        return  initialRadius + Constants.RADIUS_AMPLITUDE * Math.sin(lag + elapsed * 2 * Math.PI * Constants.RADIUS_FREQUENCY);
+    }
+
+    public static double getNewLength(double area, double radius) {
+        return (area - Math.PI * Math.pow(radius, 2)) / (2 * radius);
+    }
 }

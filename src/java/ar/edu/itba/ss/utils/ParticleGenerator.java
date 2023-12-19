@@ -20,12 +20,12 @@ public class ParticleGenerator {
                 area = (length * 2 * radius) + (Math.PI * radius * radius);
 
                 double maxRadius = radius + Constants.RADIUS_AMPLITUDE;
-                minLength = (area - Math.PI * Math.pow(maxRadius, 2)) / (2 * maxRadius);
+                minLength = MathUtils.getNewLength(area, maxRadius);
             } while (minLength <= 0);
 
 
             double lag = Math.random() * 2 * Math.PI;
-            double newRadius = radius + Constants.RADIUS_AMPLITUDE * Math.sin(lag);
+            double newRadius = MathUtils.getNewRadius(0, radius, lag);
             double newLength = (area - Math.PI * Math.pow(newRadius, 2)) / (2 * newRadius);
 
             DoubleTriad position = generateParticlePosition(particles, -1, newRadius, newLength, false);

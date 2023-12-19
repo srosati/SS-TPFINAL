@@ -220,8 +220,8 @@ public class Particle {
     }
 
     public void calculateNewSize(double elapsed) {
-        this.nextRadius = INITIAL_RADIUS + Constants.RADIUS_AMPLITUDE * Math.sin(this.lag + elapsed * Constants.RADIUS_FREQUENCY);
-        this.nextLength = (area - Math.PI * Math.pow(nextRadius, 2)) / (2 * nextRadius);
+        this.nextRadius = MathUtils.getNewRadius(elapsed, INITIAL_RADIUS, lag);
+        this.nextLength = MathUtils.getNewLength(area, nextRadius);
     }
 
     public void updateSize() {
