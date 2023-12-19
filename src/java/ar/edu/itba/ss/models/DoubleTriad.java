@@ -1,4 +1,4 @@
-package main.java.ar.edu.itba.ss.models;
+package ar.edu.itba.ss.models;
 
 public class DoubleTriad extends DoublePair {
     private double third;

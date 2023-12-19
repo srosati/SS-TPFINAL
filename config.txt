@@ -1,5 +1,5 @@
 generate true
-particle_amount 10
+particle_amount 80
 slit_size 4
-oscillation_w 0.1
+oscillation_w 1
 tao 1
