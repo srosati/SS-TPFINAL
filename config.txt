@@ -1,6 +1,6 @@
 generate true
-particle_amount 10
+particle_amount 1
 slit_size 4
 radius_frequency 1
-radius_amplitude 0.25
+radius_amplitude 0.15
 prop_factor 1
