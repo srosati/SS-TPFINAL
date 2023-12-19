@@ -220,7 +220,7 @@ public class Particle {
     }
 
     public void calculateNewSize(double elapsed) {
-        this.nextRadius = INITIAL_RADIUS + Constants.RADIUS_AMPLITUDE * Math.sin(this.lag + elapsed * Constants.ANGULAR_W);
+        this.nextRadius = INITIAL_RADIUS + Constants.RADIUS_AMPLITUDE * Math.sin(this.lag + elapsed * Constants.RADIUS_FREQUENCY);
         this.nextLength = (area - Math.PI * Math.pow(nextRadius, 2)) / (2 * nextRadius);
     }
 
@@ -231,64 +231,6 @@ public class Particle {
 
     public double getMomentOfInertia() {
         return MomentOfInertiaCalculator.INTERPOLATION_FUNCTION.value(nextLength, nextRadius);
-
-//        // Calculate mass for rectangle and circle section
-//        double circleArea = Math.PI * nextRadius * nextRadius;
-//        double rectArea = nextLength * 2 * nextRadius;
-//        double rectMassPercent = rectArea / (circleArea + rectArea);
-//
-//        // Moment of inertia for rectangle shaped part
-//        // width is length, height is radius
-//        double rectMass = mass * rectMassPercent;
-//        double rectMoment = rectMass * (nextLength * nextLength + 4 * nextRadius * nextRadius) / 12;
-//
-//        // Moment of inertia for semicircles at each end
-//        // each semicircle is at length/2 from the center of mass
-//        double circleMass = mass * (1 - rectMassPercent);
-//
-//        double circleMoment = circleMass * (Math.pow(nextRadius, 2) + Math.pow(nextLength, 2) / 2) / 2;
-//
-//        System.out.printf("ours: %f, numeric: %f\n", rectMoment + circleMoment, numericGetMomentOfInertia());
-//        // Aditive moments of inertia
-//        return rectMoment + circleMoment;
-    }
-
-
-    //Integración numerica para el momento de inercia usando Monte Carlo
-    public double numericGetMomentOfInertia() {
-        double tot = 0;
-        double maxX = nextLength / 2 + nextRadius;
-        int count = 0;
-        for (double x = -maxX; x < maxX; x += 0.001) {
-            for (double y = -nextRadius; y < nextRadius; y += 0.001) {
-                if (!isWithin(x, y))
-                    continue;
-
-                tot += x*x + y*y;
-                count++;
-            }
-//            double x = randomBetween(-maxX, maxX);
-//            double y = randomBetween(-nextRadius, nextRadius);
-//            if (!isWithin(x, y))
-//                continue;
-//
-//            tot += x*x + y*y;
-//            count++;
-        }
-
-        return mass * tot / (count);
-    }
-
-    private double randomBetween(double min, double max) {
-        return min + Math.random() * (max - min);
-    }
-
-    private boolean isWithin(double x, double y) {
-        if (x <= nextLength/2 && x >= -nextLength/2)
-            return true;
-
-        double dx = Math.abs(x) - nextLength/2; // distance from center of circle
-        return Math.sqrt(dx*dx + y*y) <= nextRadius;
     }
 
     public int getId() {

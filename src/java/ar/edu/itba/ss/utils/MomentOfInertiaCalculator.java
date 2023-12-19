@@ -39,14 +39,14 @@ public class MomentOfInertiaCalculator {
     }
 
     private static BicubicInterpolatingFunction getInterpolatingFunction() {
+        System.out.println("Interpolating moments of inertia");
+        double step = 0.1;
 
-        System.out.println("Calculating moments of inertia");
-        // Definir las longitudes para las que calcular el momento de inercia
-        double min_radius = 0.55;
-        double max_radius = 1.05;
-        double min_length = 0.01;
-        double max_length = 3;
-        double step = 0.05;
+        double min_radius = Constants.MIN_RADIUS - Constants.RADIUS_AMPLITUDE - step;
+        double max_radius = Constants.MAX_RADIUS + Constants.RADIUS_AMPLITUDE + step;
+
+        double min_length = 0;
+        double max_length = 3.1;
 
         int lengthCount = (int) ((max_length - min_length) / step) + 1;
         int radiusCount = (int) ((max_radius - min_radius) / step) + 1;
@@ -68,15 +68,11 @@ public class MomentOfInertiaCalculator {
             }
         }
 
-        // Interpolar para obtener una función continua
-        return interpolate(lengthsToCalculate, radiusesToCalculate, momentsOfInertia);
+        BicubicInterpolatingFunction interpolatingFunction = interpolate(lengthsToCalculate, radiusesToCalculate, momentsOfInertia);
 
-//        // Ejemplo de evaluación de la función interpolada para una longitud específica
-//        double lengthToEvaluate = 0.92;
-//        double radiusToEvaluate = 0.88;
-//        double result = interpolationFunction.value(lengthToEvaluate, radiusToEvaluate);
-//
-//        System.out.println("El momento de inercia interpolado para longitud " + lengthToEvaluate + " y radio " + radiusToEvaluate + " es: " + result);
-//        System.out.println("El momento de inercia numerico es " + calculateMomentOfInertia(lengthToEvaluate, radiusToEvaluate));
+        System.out.println("Done interpolating moments of inertia");
+        // Interpolar para obtener una función continua
+        return interpolatingFunction;
+
     }
 }

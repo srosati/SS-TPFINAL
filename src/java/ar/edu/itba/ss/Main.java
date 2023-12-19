@@ -67,11 +67,6 @@ public class Main {
                     }
                 }
 
-//                for (Particle p : particles) {
-//                    p.calculateNewSize(elapsed);
-////                    System.out.printf("A:%f; l:%f; r:%f\n", p.getArea(), p.getLength(), p.getRadius());
-//                }
-
                 int flow = space.reenterParticles();
                 flowFile.write(String.format(Locale.ROOT, "%f %d\n", elapsed, flow));
 
@@ -92,7 +87,6 @@ public class Main {
     }
 
     public static void configFileReader(String file) {
-
         File configFile = new File(file);
         try (Scanner configReader = new Scanner(configFile)) {
             while (configReader.hasNext()) {
@@ -101,15 +95,13 @@ public class Main {
                     case "generate" -> hasToGenerate = Boolean.parseBoolean(line[1]);
                     case "slit_size" -> Space.SLIT_SIZE = Double.parseDouble(line[1]);
                     case "particle_amount" -> Constants.PARTICLE_AMOUNT = Integer.parseInt(line[1]);
-                    case "tao" -> Constants.PROP_FACTOR = Double.parseDouble(line[1]);
-                    case "oscillation_w" -> Constants.ANGULAR_W = Double.parseDouble(line[1]);
+                    case "prop_factor" -> Constants.PROP_FACTOR = Double.parseDouble(line[1]);
+                    case "radius_frequency" -> Constants.RADIUS_FREQUENCY = Double.parseDouble(line[1]);
+                    case "radius_amplitude" -> Constants.RADIUS_AMPLITUDE = Double.parseDouble(line[1]);
                 }
             }
         } catch (NoSuchElementException | IllegalArgumentException | FileNotFoundException e) {
             System.out.println("Error parsing config file. Will use default values");
-//            System.out.println(e.getMessage());
-//            System.exit(1);
         }
-
     }
 }

@@ -12,10 +12,17 @@ public class ParticleGenerator {
         List<Particle> particles = new ArrayList<>();
         System.out.println("Begin particle generation");
         for (int i = 0; i < Constants.PARTICLE_AMOUNT; i++) {
-            double radius = randomNum(Constants.MIN_RADIUS, Constants.MAX_RADIUS);
-            double length = randomNum(Constants.MIN_LENGTH, Constants.MAX_LENGTH);
+            double minLength, radius, length, area;
+            do {
+                radius = randomNum(Constants.MIN_RADIUS, Constants.MAX_RADIUS);
+                length = randomNum(Constants.MIN_LENGTH, Constants.MAX_LENGTH);
 
-            double area = (length * 2 * radius) + (Math.PI * radius * radius);
+                area = (length * 2 * radius) + (Math.PI * radius * radius);
+
+                double maxRadius = radius + Constants.RADIUS_AMPLITUDE;
+                minLength = (area - Math.PI * Math.pow(maxRadius, 2)) / (2 * maxRadius);
+            } while (minLength <= 0);
+
 
             double lag = Math.random() * 2 * Math.PI;
             double newRadius = radius + Constants.RADIUS_AMPLITUDE * Math.sin(lag);
