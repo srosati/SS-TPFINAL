@@ -62,40 +62,6 @@ public class MathUtils {
     * The first object is the closest point on segment one
     * The second object is the closest point on segment two
     */
-//    public static DoublePair[] closestPointsBetweenSegments(DoublePair p1, DoublePair p2, DoublePair p3, DoublePair p4) {
-//        DoublePair closestPoint1 = closestPointOnSegment(p1, p2, p3);
-//        DoublePair closestPoint2 = closestPointOnSegment(p3, p4, closestPoint1);
-//        double distance = closestPoint1.distanceTo(closestPoint2);
-//
-//        double minDistance = distance;
-//        DoublePair[] closestPoints = new DoublePair[]{closestPoint1, closestPoint2};
-//
-//        DoublePair closestPoint3 = closestPointOnSegment(p1, p2, p4);
-//        DoublePair closestPoint4 = closestPointOnSegment(p3, p4, closestPoint3);
-//        distance = closestPoint3.distanceTo(closestPoint4);
-//        if (distance < minDistance) {
-//            minDistance = distance;
-//            closestPoints = new DoublePair[]{closestPoint3, closestPoint4};
-//        }
-//
-//        DoublePair closestPoint5 = closestPointOnSegment(p3, p4, p1);
-//        DoublePair closestPoint6 = closestPointOnSegment(p1, p2, closestPoint5);
-//        distance = closestPoint5.distanceTo(closestPoint6);
-//        if (distance < minDistance) {
-//            minDistance = distance;
-//            closestPoints = new DoublePair[]{closestPoint5, closestPoint6};
-//        }
-//
-//        DoublePair closestPoint7 = closestPointOnSegment(p3, p4, p2);
-//        DoublePair closestPoint8 = closestPointOnSegment(p1, p2, closestPoint7);
-//        distance = closestPoint7.distanceTo(closestPoint8);
-//        if (distance < minDistance)
-//            closestPoints = new DoublePair[]{closestPoint7, closestPoint8};
-//
-//        return closestPoints;
-//    }
-
-    //TODO: mirar
     public static DoublePair[] closestPointsBetweenSegments(DoublePair p1, DoublePair p2, DoublePair p3, DoublePair p4) {
         DoublePair closestPoint1 = closestPointOnSegment(p1, p2, p3);
         double distance = closestPoint1.distanceTo(p3);
@@ -161,7 +127,7 @@ public class MathUtils {
     }
 
     public static double getNewRadius(double elapsed, double initialRadius, double lag) {
-        return  initialRadius + Constants.RADIUS_AMPLITUDE * Math.sin(lag + elapsed * 2 * Math.PI * Constants.RADIUS_FREQUENCY);
+        return initialRadius + Constants.RADIUS_AMPLITUDE * Math.sin(lag + elapsed * 2 * Math.PI * Constants.RADIUS_FREQUENCY);
     }
 
     public static double getNewLength(double area, double radius) {
