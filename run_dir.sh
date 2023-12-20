@@ -6,8 +6,7 @@
 # 2. The output file path
 # Before each run it appends the variable to the output file
 # After each run it runs the python script to aggregate the flow for that run
-# Then the user can run the python script to plot the results
-
+# Then the user can run the python scripts to plot the results
 
 # Get the directory path from the first script argument
 dir_path="$1"
@@ -48,6 +47,6 @@ for file in "$dir_path"/*; do
         # Run the code for the file
         mvn exec:java -Dexec.mainClass="ar.edu.itba.ss.Main" -Dexec.args="$file"
 
-        python3 graphics/delta_variable.py "$output_file"
+        python3 graphics/delta_flow_curve.py "$output_file"
     fi
 done

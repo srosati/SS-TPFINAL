@@ -2,7 +2,7 @@
 import sys
 
 if len(sys.argv) < 2:
-    print("Usage: python3 delta_variable.py <output_file>")
+    print("Usage: python3 delta_flow_curve.py <output_file>")
     exit()
 
 # Get the output file name

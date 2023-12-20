@@ -73,7 +73,8 @@ public class Particle {
                 Integration.eulerV(0.0, -Constants.STEP, mass, 0)
         );
 
-        prev[R.ACC] = new DoubleTriad(0.0, acc, 0.0);
+        double prevAcc = (Constants.DESIRED_VELOCITY - getPrev(R.VEL).getSecond()) / Constants.PROP_FACTOR;
+        prev[R.ACC] = new DoubleTriad(0.0, prevAcc, 0.0);
     }
 
     public double distanceTo(DoubleTriad other, double otherLength) {
@@ -101,9 +102,6 @@ public class Particle {
                 mass * (Constants.DESIRED_VELOCITY - predV.getSecond()) / Constants.PROP_FACTOR,
                 0);
 
-        if (Double.isNaN(predV.getSecond())) {
-//            System.out.println("NaN");
-        }
 
         for (Particle neighbour : neighbours) {
             DoubleTriad force = getForcesWith(neighbour);
@@ -112,8 +110,6 @@ public class Particle {
             // Me podria guardar de alguna forma este calculo para el choque inverso
             // Fij = -Fji
             // Tarda mucho asi como esta
-//            DoubleTriad otherForce = neighbour.getForcesWith(this);
-//            System.out.printf("(%f, %f),  (%f, %f),  (%f, %f)\n", force.getFirst(), otherForce.getFirst(), force.getSecond(), otherForce.getSecond(), force.getThird(), otherForce.getThird());
         }
 
         return totForce;

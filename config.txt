@@ -1,5 +1,5 @@
 generate true
-particle_amount 1
+particle_amount 100
 slit_size 4
 radius_frequency 1
 radius_amplitude 0.15
