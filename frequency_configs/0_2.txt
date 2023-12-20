@@ -1,0 +1,6 @@
+generate true
+particle_amount 100
+slit_size 4
+radius_frequency 0.2
+radius_amplitude 0.12
+prop_factor 1

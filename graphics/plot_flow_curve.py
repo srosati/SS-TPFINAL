@@ -7,12 +7,13 @@ from matplotlib import pyplot as plt
 
 import sys
 
-if len(sys.argv) < 3:
-    print("Usage: python3 plot_flow_variable.py <input_file> <output_file>")
+if len(sys.argv) < 4:
+    print("Usage: python3 plot_flow_variable.py <input_file> <output_file> <y_step>")
     exit()
 
 input_file = sys.argv[1]
 output_file = sys.argv[2]
+y_step = int(sys.argv[3])
 
 plt.figure(figsize=(16, 10))
 max_dt = 0
@@ -47,7 +48,7 @@ plt.xlabel("Tiempo (s)", size=14)
 plt.ylabel("Cantidad", size=14)
 
 plt.xticks(np.arange(0, max_dt+1, 50))
-plt.yticks(np.arange(0, max_y+1, 10))
+plt.yticks(np.arange(0, max_y+1, y_step))
 plt.tick_params(labelsize=14)
 
 plt.legend()

@@ -6,7 +6,7 @@ out/
 *.iml
 target
 
-*.txt
+outFiles/*.txt
 *.png
 
 ### Eclipse ###
