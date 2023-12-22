@@ -14,6 +14,16 @@ input_file = sys.argv[1]
 output_path = sys.argv[2]
 x_label = sys.argv[3]
 
+
+# IMPORTANT: stationary_dic must be updated manually
+stationary_dic = {
+    "2": 20,
+    "3": 0,
+    "4": 0,
+    "5": 62,
+    "6": 0,
+}
+
 dn = 10
 
 with open(input_file, "r") as input_file:
@@ -54,28 +64,35 @@ with open(input_file, "r") as input_file:
             flow.append((xs[i] - xs[i - dn]) / val)
 
         plt.xlabel("Tiempo (s)")
-        plt.ylabel("Q (1/s)")
+        plt.ylabel("Caudal (1/s)")
         plt.plot(flow_x, flow, '-')
 
         plt.savefig(output_path + variable + ".png")
         plt.clf()
 
-
-        mean = np.mean(flow[15:])
-        std = np.std(flow[15:], ddof=1)
         print("variable = {}".format(variable))
+        print("Points: {}".format(len(flow)))
+
+        start_idx = stationary_dic[str(variable)]
+        subflow = flow[start_idx:]
+        print("start_idx = {}".format(start_idx))
+
+        mean = np.mean(subflow)
+        std = np.std(subflow, ddof=1)
         print("mean = {}".format(mean))
         print("std = {}".format(std))
 
         variable_values.append(variable)
-        mean_values.append(np.mean(flow[15:]))
-        std_values.append(np.std(flow[15:], ddof=1))
+        mean_values.append(np.mean(subflow))
+        std_values.append(np.std(subflow, ddof=1))
 
 
     # Plot means and stds
     plt.xlabel(x_label)
-    plt.ylabel("Q (1/s)")
+    plt.ylabel("Caudal (1/s)")
     plt.errorbar(x=variable_values, y=mean_values, yerr=std_values, fmt='o-', capsize=5)
+    plt.yticks(np.arange(0, 2.5, 0.3))
+
     plt.savefig(output_path + "means.png")
 
 
